@@ -28,9 +28,6 @@ describe('dsh-sdk-minimal bundle', () => {
     expect(rows.map(row => [row.id, row.name])).toEqual([
       ['sdk-app-startup', '@deepseek-ai/dsh-sdk-app'],
       ['sdk-jsonrpc-server', '@deepseek-ai/dsh-sdk-jsonrpc-server'],
-      ['deepseek-llm-api-extensions', '@deepseek-ai/dsh-deepseek-llm-api-extensions'],
-      ['session-log-deepseek', '@deepseek-ai/dsh-session-log-deepseek'],
-      ['plugin-package-inventory-deepseek', '@deepseek-ai/dsh-plugin-package-inventory-deepseek'],
       ['llm-deepseek', '@deepseek-ai/dsh-llm-deepseek-api-key'],
       ['sandbox', '@deepseek-ai/dsh-sandbox-local'],
       ['session-projection', '@deepseek-ai/dsh-session-projection'],

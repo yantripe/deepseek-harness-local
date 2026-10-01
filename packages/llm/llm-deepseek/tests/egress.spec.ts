@@ -37,7 +37,6 @@ import { join } from 'node:path'
 import { vi } from 'vitest'
 import { Context } from '@deepseek-ai/cordis'
 import LlmRuntime from '@deepseek-ai/dsh-llm'
-import DeepSeekLlmApiExtensionRegistry from '@deepseek-ai/dsh-deepseek-llm-api-extensions'
 import * as LlmDeepSeek from '@deepseek-ai/dsh-llm-deepseek-api-key'
 
 let home: string
@@ -55,7 +54,6 @@ afterAll(() => {
 async function streamOnce(): Promise<void> {
   const ctx = new Context()
   await ctx.plugin(LlmRuntime)
-  await ctx.plugin(DeepSeekLlmApiExtensionRegistry)
   await ctx.plugin(LlmDeepSeek, { baseURL: 'http://deepseek-probe.invalid/v1', models: [{ id: 'm' }] })
   for await (const _chunk of ctx.llm.stream({ provider: 'deepseek-official', model: 'm', messages: [] })) {
     // The endpoint never answers; the proxy record is the assertion.

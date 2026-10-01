@@ -1,8 +1,6 @@
 /** Model catalog and request-local dependencies for DeepSeek Messages. */
 import type { LlmModelInfo, ModelModality, SystemPromptUpdate, ToolUpdate, ResolvedRetryPolicy, ImageAttachmentAccess } from '@deepseek-ai/dsh-llm'
 import type { AttachmentStore, ImageAttachmentRef } from '@deepseek-ai/dsh-attachment'
-import type { AnonymousUserId } from '@deepseek-ai/dsh-anonymous-user-id'
-import type { DeepSeekLlmApiExtensionRequest, PreparedDeepSeekLlmApiExtensions } from '@deepseek-ai/dsh-deepseek-llm-api-extensions'
 import type { DeepSeekFileStore, DeepSeekFilePolicy } from './file-store.ts'
 
 /** One optional model entry advertised by the direct-fetch adapter. */
@@ -93,8 +91,6 @@ export interface DeepSeekRequestAuth {
 export interface DeepSeekAdapterOptions<Connection extends DeepSeekConnectionOptions = DeepSeekConnectionOptions> {
   /** Report unusable native Messages replay metadata without exposing content or signatures. */
   onReplayDegrade?: (detail: { provider: string; model: string; reason: string }) => void
-  /** Report extension fields omitted from one request because the merged request failed to serialize. */
-  onExtensionsOmitted?: (detail: { provider: string; model: string; fields: readonly string[]; error: unknown }) => void
   /** Provider label for selectors; omission uses the protocol family name. */
   providerName?: string
   /** Provider-owned catalog availability; omission exposes no discovery entries. */
@@ -103,16 +99,12 @@ export interface DeepSeekAdapterOptions<Connection extends DeepSeekConnectionOpt
   options: () => Connection
   /** Resolve authentication from this request's connection snapshot; never re-read the endpoint. */
   resolveAuth: (connection: Connection) => Promise<DeepSeekRequestAuth>
-  /** Resolve the harness-home anonymous id shared with telemetry and feedback. */
-  resolveUserId: () => AnonymousUserId
   /** Resolve the current durable attachment service; absence rejects image input. */
   resolveAttachments?: () => AttachmentStore | undefined
   /** Bridge one attachment reference into the current model-tool execution world. */
   resolveImageAccess?: (attachments: AttachmentStore, ref: ImageAttachmentRef) => ImageAttachmentAccess | undefined
   /** Resolve the process-wide upload reuse store. */
   resolveFiles?: () => DeepSeekFileStore
-  /** Prepare the official API's plugin-contributed top-level fields for one exact wire request. */
-  prepareExtensions: (request: DeepSeekLlmApiExtensionRequest) => Promise<PreparedDeepSeekLlmApiExtensions>
 }
 
 

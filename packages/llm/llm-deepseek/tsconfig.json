@@ -36,16 +36,10 @@
       "path": "../../util/home-paths"
     },
     {
-      "path": "../deepseek-llm-api-extensions"
-    },
-    {
       "path": "../../util/launch-environment"
     },
     {
       "path": "../../util/timeout"
-    },
-    {
-      "path": "../../identity/anonymous-user-id"
     },
     {
       "path": "../../util/http-proxy"

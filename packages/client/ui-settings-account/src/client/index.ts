@@ -1,5 +1,4 @@
 /** Desktop account settings registration and reconnecting Remote subscription. */
-import type {} from '@deepseek-ai/dsh-client-product-analytics/client'
 import type { TranscriptViewMode } from '@deepseek-ai/dsh-client-ui-chat/client'
 import type { Context } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-client-locale/client'
@@ -259,7 +258,6 @@ export function apply(ctx: Context): void {
         update: (change: OnboardingChange) => controller.update(change),
         complete: (reason: 'completed' | 'skipped') => controller.complete(reason),
         retry: () => controller.retry(),
-        track: (name, attributes) => ctx.get('productAnalytics')?.track(name, attributes),
       }),
     }, DesktopOnboardingEntry))
   }

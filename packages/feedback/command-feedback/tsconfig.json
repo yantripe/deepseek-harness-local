@@ -21,9 +21,6 @@
       "path": "../../core/session"
     },
     {
-      "path": "../../identity/anonymous-user-id"
-    },
-    {
       "path": "../../typert/protocol"
     }
   ]

@@ -105,7 +105,7 @@ export async function bootProductionProfile(options: ProductionProfileOptions): 
         name: options.profile, dir: profile.dir, patchPath: profile.patchPath, installAnchor,
         cwd: process.cwd(), home: process.env['DSH_HOME'] ?? join(homedir(), '.dsh'),
         startedBundles: profile.layers.map(layer => layer.packageName),
-        overlays: overlays.flat(), telemetryDisabledEnv: process.env['DSH_TELEMETRY_DISABLED'],
+        overlays: overlays.flat(),
       }
       ctx.provide('profileContext', profileContext)
       await ctx.plugin(PluginPackages, { resolution })

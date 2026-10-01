@@ -1,6 +1,5 @@
 /** HTTP lifecycle, routing and optional Cordis services under real composition. */
 import { installAccountTaskCancellation, type DeepSeekAccount } from '@deepseek-ai/dsh-deepseek-account'
-import type { AnonymousUserId } from '@deepseek-ai/dsh-anonymous-user-id'
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -28,7 +27,7 @@ import { object } from '../src/replay.ts'
 import { DeepSeekFileStore } from '../src/file-store.ts'
 import * as Messages from '@deepseek-ai/dsh-llm-deepseek-api-key'
 import * as AccountProvider from '@deepseek-ai/dsh-llm-deepseek-account'
-import { adapter, assemble, chunks, MODEL, options, prepareExtensions, server, sse, textEvents, user, sourceModuleLoader } from './helpers.ts'
+import { adapter, assemble, chunks, MODEL, options, server, sse, textEvents, user, sourceModuleLoader } from './helpers.ts'
 
 const cleanup: (() => Promise<unknown>)[] = []
 afterEach(async () => {
@@ -135,9 +134,9 @@ describe('direct Messages HTTP', () => {
     })
     expect(http.requests[0]).toMatchObject({ path: '/anthropic/v1/messages', headers: {
       'x-api-key': 'test-key', 'anthropic-version': '2023-06-01',
-      'user-agent': expect.stringContaining('deepseek-harness/') as string, 'x-deepseek-harness-user-id': 'test-user',
-      'x-deepseek-harness-session-id': 'session-test', 'x-deepseek-harness-compact': '1',
+      'user-agent': expect.stringContaining('deepseek-harness/') as string,
     }, body: { thinking: { type: 'enabled' }, output_config: { effort: 'high' } } })
+    expect(Object.keys(http.requests[0]!.headers).filter(name => name.startsWith('x-deepseek-harness'))).toEqual([])
     expect(llm.providerInfo('deepseek-official')).toEqual({ id: 'deepseek-official', name: 'DeepSeek' })
     expect(await llm.listModels('deepseek-official')).toEqual([])
     expect(await llm.resolveModel('deepseek-official', 'deepseek-flash')).toMatchObject({
@@ -170,35 +169,30 @@ describe('direct Messages HTTP', () => {
     await expect(chunks(adapter({ baseURL: http.url }).stream(options()))).rejects.toMatchObject({ code: 'RATE_LIMIT', failure: { status: 429, providerRetryAfterMs: 3000 } })
   })
 
-  it('refuses redirects before credentials reach another origin or request extensions are accepted', async () => {
+  it('refuses redirects before credentials reach another origin', async () => {
     const destination = await endpoint()
     const source = await endpoint((response) => {
       response.writeHead(307, { location: `${destination.url}/v1/messages` })
       response.end()
     })
-    const accept = vi.fn(async () => {})
-    const prepare = vi.fn(async () => ({ fields: {}, accept }))
     const files = new DeepSeekFileStore()
     const llm = new DeepSeekAdapter({
       options: () => Messages.resolveAdapterOptions({ baseURL: source.url }),
-      resolveAuth: () => Promise.resolve({ headers: { 'x-api-key': 'test-key' } }), resolveUserId: () => 'test-user' as AnonymousUserId,
+      resolveAuth: () => Promise.resolve({ headers: { 'x-api-key': 'test-key' } }),
       resolveAttachments: () => undefined, resolveImageAccess: () => undefined, resolveFiles: () => files,
-      prepareExtensions: prepare,
     })
     const error = await chunks(llm.stream(options())).catch((cause: unknown) => cause)
     expect(source.requests).toHaveLength(1)
     expect(source.requests[0]?.headers['x-api-key']).toBe('test-key')
     expect(destination.requests).toEqual([])
     expect(error).toMatchObject({ code: 'TRANSPORT' })
-    expect(prepare).toHaveBeenCalledOnce()
-    expect(accept).not.toHaveBeenCalled()
   })
 
   it('freezes endpoint and defaults for a prepared call while the next call sees new settings', async () => {
     const first = await endpoint(), second = await endpoint()
     let config = Messages.resolveAdapterOptions({ baseURL: first.url, maxTokens: 10, models: [{ id: MODEL, systemPromptUpdate: 'in-history' }] })
     const files = new DeepSeekFileStore()
-    const llm = new DeepSeekAdapter({ options: () => config, resolveAuth: snapshot => Promise.resolve({ headers: { 'x-api-key': snapshot.maxTokens === 10 ? 'first' : 'second' } }), resolveUserId: () => 'user' as AnonymousUserId, resolveAttachments: () => undefined, resolveImageAccess: () => undefined, resolveFiles: () => files, prepareExtensions })
+    const llm = new DeepSeekAdapter({ options: () => config, resolveAuth: snapshot => Promise.resolve({ headers: { 'x-api-key': snapshot.maxTokens === 10 ? 'first' : 'second' } }), resolveAttachments: () => undefined, resolveImageAccess: () => undefined, resolveFiles: () => files })
     const prepared = await llm.prepareCall('deepseek-official', MODEL)
     config = Messages.resolveAdapterOptions({ baseURL: second.url, maxTokens: 20 })
     expect(prepared.model.systemPromptUpdate).toBe('in-history')
@@ -262,8 +256,6 @@ describe('direct Messages HTTP', () => {
       resolveAuth: () => Promise.resolve({ headers: { 'x-api-key': 'fixture-key' },
         onRequestError: async () => { throw new Error('credential storage unavailable') },
       }),
-      resolveUserId: () => 'fixture-user' as import('@deepseek-ai/dsh-anonymous-user-id').AnonymousUserId,
-      prepareExtensions,
     })
     await expect(chunks(llm.stream(options()))).rejects.toMatchObject({ code: 'AUTH', failure: { status: 401 } })
   })

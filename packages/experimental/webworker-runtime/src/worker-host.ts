@@ -422,7 +422,7 @@ function bootPatches(
     name: 'preview', dir, patchPath: join(dir, 'cordis.patch.yml'),
     installAnchor: join(dir, 'package.json'), cwd: root,
     home: join(root, IMAGE_HOME_DIRECTORY), startedBundles: [],
-    overlays: patches, telemetryDisabledEnv: undefined,
+    overlays: patches,
   }
   vfs.seed(join(dir, 'package.json'), '{"private":true,"dsh":{"profile":{"bundles":[]}}}\n')
   vfs.seed(join(dir, 'cordis.yml'), '[]\n')

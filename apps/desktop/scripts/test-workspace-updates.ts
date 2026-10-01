@@ -52,7 +52,6 @@ try {
   await writeFile(join(profile, 'cordis.patch.yml'), JSON.stringify([
     { id: 'webserver', config: { host: '127.0.0.1', port: 0 } },
     { id: 'llm-deepseek', disabled: true }, { id: 'session-title-llm', disabled: true },
-    { id: 'session-telemetry-otel', disabled: true },
     { id: 'agent-preset-registry', config: { default: 'standard' } },
     { insert: [{ id: 'update-control', name: new URL('../tests/fixtures/workspace-update-host.mjs', import.meta.url).href }] },
   ]))

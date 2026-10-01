@@ -1,6 +1,5 @@
 /** Prepared calls retain their endpoint and credential generation. */
 import { afterEach, expect, it } from 'vitest'
-import type { AnonymousUserId } from '@deepseek-ai/dsh-anonymous-user-id'
 import { DeepSeekAdapter } from '../src/index.ts'
 import { Config, plainOptions, resolveAdapterOptions } from '@deepseek-ai/dsh-llm-deepseek-api-key'
 import type { ResolvedDeepSeekOptions as DeepSeekConnectionOptions } from '@deepseek-ai/dsh-llm-deepseek-api-key'
@@ -19,8 +18,6 @@ function adapter(connection: () => DeepSeekConnectionOptions) {
   return new DeepSeekAdapter({
     options: connection,
     resolveAuth: snapshot => Promise.resolve({ headers: { 'x-api-key': `key-for-${snapshot.apiKeyEnv}` } }),
-    resolveUserId: () => '00000000-0000-4000-8000-000000000001' as AnonymousUserId,
-    prepareExtensions: () => Promise.resolve({ fields: {}, accept: () => Promise.resolve() }),
   })
 }
 

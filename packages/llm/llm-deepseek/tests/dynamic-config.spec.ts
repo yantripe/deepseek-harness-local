@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Context, Service } from '@deepseek-ai/cordis'
-import { access, mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import LlmRuntime, { createUserMessage, INVALID_CREDENTIAL_CODE } from '@deepseek-ai/dsh-llm'
@@ -165,11 +165,9 @@ describe('request-level dynamic configuration', () => {
 
     const keyless = await prompt(ctx)
     expect(keyless.finish).toMatchObject({ kind: 'error', failure: { code: 'MISSING_CREDENTIAL' } })
-    await expect(access(join(dir, '.anonymous-user-id'))).rejects.toMatchObject({ code: 'ENOENT' })
     await ctx.credentials.set(KEY_REF, 'sk-arrived')
     await prompt(ctx)
     expect(server.headers[0]?.['x-api-key']).toBe('sk-arrived')
-    await expect(access(join(dir, '.anonymous-user-id'))).resolves.toBeUndefined()
   })
 
   it('rejects a stored credential no header can carry, never echoing it in the failure', async () => {

@@ -236,7 +236,6 @@ def write_profile_patch(
             "id": "session-persistence-jsonl",
             "config": {"root": str(sessions), "compression": "none"},
         },
-        {"id": "session-telemetry-otel", "disabled": True},
         *patches,
     ], indent=2))
     return path

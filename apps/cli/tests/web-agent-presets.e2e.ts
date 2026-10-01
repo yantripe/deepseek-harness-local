@@ -89,7 +89,6 @@ async function bootWeb(
     // and the URL prompt line — surface glue, not anything that decides an
     // agent's capabilities, which is all this file asserts.
     { id: 'web-runtime', disabled: true },
-    { id: 'session-telemetry-otel', disabled: true },
     // A deployment-level skill on the host registry's GLOBAL layer — the same
     // registration shape a repository plugin's skill root uses. The layered
     // skills test below proves it reaches preset-composed agents.
@@ -169,7 +168,7 @@ async function bootWeb(
     bootCtx.provide('profileContext', { name: 'spec', dir: profileDir, patchPath: profile.patchPath,
       installAnchor: INSTALL_ANCHOR, home, cwd: home,
       startedBundles: profileBundles ?? ['@deepseek-ai/dsh-base', '@deepseek-ai/dsh-web-app'],
-      overlays: [], telemetryDisabledEnv: '1' })
+      overlays: [] })
     await bootCtx.plugin(PluginPackages, { resolution })
     bootCtx.provide('connection', {
       fetch: { register: () => () => {} },

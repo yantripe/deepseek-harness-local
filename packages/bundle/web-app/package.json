@@ -173,10 +173,7 @@
     "@deepseek-ai/dsh-api-account-controller": "workspace:*",
     "@deepseek-ai/dsh-client-ui-settings-account": "workspace:*",
     "@deepseek-ai/dsh-client-shortcuts": "workspace:*",
-    "@deepseek-ai/dsh-client-ui-shortcuts": "workspace:*",
-    "@deepseek-ai/dsh-client-product-analytics": "workspace:*",
-    "@deepseek-ai/dsh-host-product-telemetry-otel": "workspace:*",
-    "@deepseek-ai/dsh-client-ui-settings-session-log": "workspace:*"
+    "@deepseek-ai/dsh-client-ui-shortcuts": "workspace:*"
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "workspace:~",
@@ -196,7 +193,6 @@
     "@deepseek-ai/dsh-shell-env": "workspace:*",
     "@deepseek-ai/dsh-system-prompt": "workspace:*",
     "@deepseek-ai/dsh-typert-registry": "workspace:*",
-    "@deepseek-ai/libreoffice-kit": "^0.1.1",
-    "@deepseek-ai/dsh-otel": "workspace:*"
+    "@deepseek-ai/libreoffice-kit": "^0.1.1"
   }
 }

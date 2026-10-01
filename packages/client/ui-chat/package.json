@@ -92,8 +92,7 @@
     "@types/react-dom": "~18.3.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "@deepseek-ai/dsh-settings": "workspace:*",
-    "@deepseek-ai/dsh-client-product-analytics": "workspace:*"
+    "@deepseek-ai/dsh-settings": "workspace:*"
   },
   "dependencies": {
     "@deepseek-ai/schemastery": "workspace:~"

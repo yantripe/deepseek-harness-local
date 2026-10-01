@@ -1,5 +1,4 @@
 /** Messages file-reference admission, bounded recovery and request-wide inline fallback. */
-import type { AnonymousUserId } from '@deepseek-ai/dsh-anonymous-user-id'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { AttachmentId, ImageVariantId } from '@deepseek-ai/dsh-attachment'
 import type { ImageAttachmentRef, RequestImageAttachment } from '@deepseek-ai/dsh-attachment'
@@ -11,7 +10,7 @@ import type { Options as Config } from '../src/config.ts'
 import { DeepSeekAdapter } from '../src/adapter.ts'
 import { prepareImages } from '../src/images.ts'
 import { providerErrorDetail } from '../src/transport.ts'
-import { chunks, options, prepareExtensions, sse, textEvents, user, requestImageStore } from './helpers.ts'
+import { chunks, options, sse, textEvents, user, requestImageStore } from './helpers.ts'
 
 const model = 'deepseek-flash'
 const ref: ImageAttachmentRef = { attachmentId: AttachmentId(`sha256:${'a'.repeat(64)}`), width: 1, height: 1, mediaType: 'image/png', bytes: 3 }
@@ -36,13 +35,12 @@ function harness(config: Config = {}) {
   const readImageRequest = vi.fn(async (attachment: ImageAttachmentRef) => version(attachment))
   // The codec and remote upload are the expensive boundaries; request projection and recovery stay real.
   const attachments = requestImageStore(readImageRequest)
-  const prepare = vi.fn(prepareExtensions)
   const adapter = new DeepSeekAdapter({
     options: () => resolveAdapterOptions(Object.assign({ baseURL: 'https://gateway.example/custom' }, config)),
-    resolveAuth: async () => ({ headers: { 'x-api-key': 'test-key' } }), resolveUserId: () => 'test-user' as AnonymousUserId, resolveAttachments: () => attachments,
-    resolveImageAccess: () => ({ readonlyPath: '/workspace/image.png' }), resolveFiles: () => files, prepareExtensions: prepare,
+    resolveAuth: async () => ({ headers: { 'x-api-key': 'test-key' } }), resolveAttachments: () => attachments,
+    resolveImageAccess: () => ({ readonlyPath: '/workspace/image.png' }), resolveFiles: () => files,
   })
-  return { adapter, ensureUploaded, invalidate, readImageRequest, prepare }
+  return { adapter, ensureUploaded, invalidate, readImageRequest }
 }
 afterEach(() => { vi.unstubAllGlobals() })
 
@@ -75,7 +73,6 @@ describe('Messages Files requests', () => {
     await chunks(h.adapter.stream(request([ref, second])))
     expect(h.invalidate).toHaveBeenCalledExactlyOnceWith([{ variantId: version(ref).variantId, fileId: 'file-a' }], expect.objectContaining({}))
     expect(fetchImpl).toHaveBeenCalledTimes(2)
-    expect(h.prepare).toHaveBeenCalledTimes(2)
     expect(h.ensureUploaded).toHaveBeenCalledTimes(4)
   })
 
@@ -110,7 +107,6 @@ describe('Messages Files requests', () => {
     expect(body(init).match(/"type":"base64"/gu)).toHaveLength(2)
     expect(body(init)).not.toContain('file_id')
     expect(new Headers(init?.headers).has('anthropic-beta')).toBe(false)
-    expect(h.prepare).toHaveBeenCalledTimes(1)
   })
 
   it('applies the tighter inline byte budget only after Files resolution fails', async () => {

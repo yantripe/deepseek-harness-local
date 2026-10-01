@@ -52,9 +52,6 @@ export { REGION_BEGIN, REGION_END }
 export const SERVICE_PAGE: Record<string, string> = {
   speechToText: 'voice-input.md',
   speechController: 'voice-input.md',
-  otel: 'otel.md',
-  productTelemetry: 'product-telemetry.md',
-  productAnalytics: 'product-telemetry.md',
   connection: 'web-server.md',
   pluginManager: 'boot.md',
   pluginRegistryProbe: 'boot.md',
@@ -84,7 +81,6 @@ export const SERVICE_PAGE: Record<string, string> = {
   credentialsController: 'credentials.md',
   settingsController: 'settings.md',
   directoryPicker: 'workspace.md',
-  deepseekLlmApiExtensions: 'llm-streaming.md',
   dynamicCordisRunner: 'extensions.md',
   fileUploads: 'attachment.md',
   fileReferences: 'session-reference.md',
@@ -125,7 +121,6 @@ export const SERVICE_PAGE: Record<string, string> = {
   systemPrompt: 'system-prompt.md',
   jobs: 'jobs.md',
   jobController: 'jobs.md',
-  sessionTelemetry: 'session-telemetry.md',
   agentTeams: 'agent-team.md',
   tokenMeter: 'token-meter.md',
   toolResultPruner: 'compaction.md',
@@ -276,14 +271,6 @@ export const EVENT_WALK_EXEMPTIONS: Record<string, string> = {
  * appear on more than one page.
  */
 export const LINK_MAP: Readonly<Record<string, string>> = {
-  EventLogOptions: 'otel.md',
-  EventLogReporter: 'otel.md',
-  SessionLogOptions: 'otel.md',
-  SessionLogReporter: 'otel.md',
-  OTelEventRecord: 'otel.md',
-  OTelEventScalar: 'otel.md',
-  ProductTelemetryRecord: 'product-telemetry.md',
-  ProductTelemetryScalar: 'product-telemetry.md',
   WorkspaceChangesSummary: 'deliverables.md',
   WorkspaceFileDiff: 'deliverables.md',
   Reload: 'boot.md',
@@ -330,9 +317,6 @@ export const LINK_MAP: Readonly<Record<string, string>> = {
   SettleReason: 'core.md',
   AdapterRegistrationHandle: 'llm-streaming.md',
   DirectoryRegistrationHandle: 'llm-streaming.md',
-  DeepSeekLlmApiExtensionMap: 'llm-streaming.md',
-  DeepSeekLlmApiExtensionProvider: 'llm-streaming.md',
-  DeepSeekLlmApiExtensionRequest: 'llm-streaming.md',
   LlmCallConfig: 'llm-streaming.md',
   LlmModelContext: 'llm-streaming.md',
   LlmModelReasoningInfo: 'llm-streaming.md',
@@ -521,7 +505,6 @@ export const LINK_MAP: Readonly<Record<string, string>> = {
   LspQueryResult: 'lsp.md',
   LlmAdapter: 'llm-streaming.md',
   PreparedLlmCall: 'llm-streaming.md',
-  PreparedDeepSeekLlmApiExtensions: 'llm-streaming.md',
   LlmRuntime: 'llm-streaming.md',
   StreamChunk: 'llm-streaming.md',
   SkillProviderControl: 'skills.md',
@@ -785,7 +768,6 @@ export const LINK_MAP: Readonly<Record<string, string>> = {
   WorkspaceValue: 'workspace.md',
   ClientArtifactBaseline: 'client-modules.md',
   WebBootGraph: 'client-modules.md',
-  SessionTelemetryRecord: 'session-telemetry.md',
   WorkflowRunInfo: 'workflow.md',
   WorkflowStartRequest: 'workflow.md',
   ProjectionDefinition: 'session-projection.md',
@@ -838,7 +820,6 @@ export const FOUNDATION_TYPE_NAMES: ReadonlySet<string> = new Set([
 
 /** Project types deliberately documented outside the subsystems catalog. */
 export const TYPE_LINK_EXEMPTIONS: Readonly<Record<string, string>> = {
-  ProductEvent: 'Desktop event fields are owned by packages/client/product-analytics/README.md and src/events.ts',
   ConnectionFetchHandler: 'shared Fetch dispatch is owned by packages/client/connection/src/rpc.ts',
   ConnectionRequestRejection: 'transport rejection status is owned by packages/client/connection/src/rpc.ts',
   ConnectionTrustRequest: 'transport authentication input is owned by packages/client/connection/src/rpc.ts',

@@ -50,8 +50,6 @@
     "@deepseek-ai/dsh-compaction-image-offload": "workspace:*",
     "@deepseek-ai/dsh-compaction-tool-result-pruner": "workspace:*",
     "@deepseek-ai/dsh-credentials-local": "workspace:*",
-    "@deepseek-ai/dsh-deepseek-llm-api-extensions": "workspace:*",
-    "@deepseek-ai/dsh-plugin-package-inventory-deepseek": "workspace:*",
     "@deepseek-ai/dsh-fs-local": "workspace:*",
     "@deepseek-ai/dsh-fs-observation-policy": "workspace:*",
     "@deepseek-ai/dsh-fs-sandbox": "workspace:*",
@@ -72,12 +70,10 @@
     "@deepseek-ai/dsh-sandbox-policy": "workspace:*",
     "@deepseek-ai/dsh-session": "workspace:*",
     "@deepseek-ai/dsh-session-checkpoint-policy": "workspace:*",
-    "@deepseek-ai/dsh-session-log-deepseek": "workspace:*",
     "@deepseek-ai/dsh-session-persistence-jsonl": "workspace:*",
     "@deepseek-ai/dsh-session-projection": "workspace:*",
     "@deepseek-ai/dsh-session-projection-cache": "workspace:*",
     "@deepseek-ai/dsh-session-query-sqlite": "workspace:*",
-    "@deepseek-ai/dsh-session-telemetry-otel": "workspace:*",
     "@deepseek-ai/dsh-session-title": "workspace:*",
     "@deepseek-ai/dsh-session-title-first-prompt-llm": "workspace:*",
     "@deepseek-ai/dsh-skill": "workspace:*",
@@ -125,8 +121,7 @@
     "@deepseek-ai/dsh-authorization": "workspace:*",
     "@deepseek-ai/dsh-deepseek-account-platform": "workspace:*",
     "@deepseek-ai/dsh-config-editor": "workspace:*",
-    "@deepseek-ai/dsh-settings": "workspace:*",
-    "@deepseek-ai/dsh-otel": "workspace:*"
+    "@deepseek-ai/dsh-settings": "workspace:*"
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "workspace:~"

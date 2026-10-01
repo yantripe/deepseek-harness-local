@@ -128,7 +128,6 @@ describe('runProfile with an application-owned profile', () => {
         packageName: 'test-bundle', packageDir: home, patchPaths: [join(home, 'bundle.yml')],
         patches: [{ insert: [
           { id: 'target', name: 'target', config: { bundle: true, priority: 'bundle' } },
-          { id: 'session-telemetry-otel', name: 'telemetry' },
         ] }],
       }],
     }
@@ -162,7 +161,6 @@ describe('runProfile with an application-owned profile', () => {
         { id: 'target', config: { overlay: true, priority: 'overlay' } },
       ])
       expect(rows.find(row => row.id === 'target')?.config).toEqual({ overlay: true, priority: 'overlay' })
-      expect(rows.find(row => row.id === 'session-telemetry-otel')?.disabled).toBe(true)
       expect(ctx.profileContext).toMatchObject({ dir: home, patchPath: profilePatch, installAnchor: runtime.installAnchor })
       await shutdown.shutdown(0)
       expect(dispose).toHaveBeenCalledOnce()

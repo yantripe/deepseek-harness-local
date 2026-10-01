@@ -26,7 +26,6 @@ try {
     { id: 'webserver', config: { host: '127.0.0.1', port: 0 } },
     { id: 'llm-deepseek', disabled: true },
     { id: 'session-title-llm', disabled: true },
-    { id: 'session-telemetry-otel', disabled: true },
     { id: 'agent-instructions', disabled: true },
     { id: 'agent-preset-registry', config: { default: 'standard' } },
     { insert: [{ id: 'update-qualification', name: new URL('../tests/fixtures/host-update-control.mjs', import.meta.url).href }] },

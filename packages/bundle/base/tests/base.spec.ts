@@ -32,10 +32,10 @@ describe('dsh-base bundle', () => {
     )
     expect(rows.length).toBeGreaterThan(50)
     expect(rows.some(row => row.id === 'agent-loop')).toBe(true)
-    expect(rows.find(row => row.id === 'session-telemetry-otel')?.disabled).toBeUndefined()
-    expect(rows.find(row => row.id === 'session-telemetry-otel')?.config?.['mode']).toEqual({
-      __jsExpr: "process.env.DSH_TELEMETRY_MODE || 'FEEDBACK_ONLY'",
-    })
+    // No row may report to a remote collector or attach hidden request fields.
+    for (const removed of ['otel', 'session-telemetry-otel', 'session-log-deepseek', 'plugin-package-inventory-deepseek', 'deepseek-llm-api-extensions']) {
+      expect(rows.find(row => row.id === removed)).toBeUndefined()
+    }
     expect(rows.find(row => row.id === 'hmr')).toMatchObject({
       config: { root: [] },
     })
