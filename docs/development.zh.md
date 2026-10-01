@@ -108,10 +108,10 @@ pnpm run build
 
 ```sh
 DEEPSEEK_API_KEY=sk-...
-DEEPSEEK_BASE_URL=https://... # optional
+DEEPSEEK_BASE_URL=https://... # required: your self-hosted Messages endpoint
 ```
 
-`DEEPSEEK_BASE_URL` 可选，默认为公开 API。请勿提交真实凭证。未设置 `DEEPSEEK_API_KEY` 时，真实 API 的 e2e 套件会自动跳过。
+`DEEPSEEK_BASE_URL` 没有默认值；未设置它且模型页面也未配置 `baseURL` 时，模型请求会在本地失败。请勿提交真实凭证。未设置 `DEEPSEEK_API_KEY` 时，真实 API 的 e2e 套件会自动跳过。
 
 ### Git 集成
 

@@ -104,10 +104,10 @@ The real DeepSeek adapter and key-backed agent demos read credentials from the e
 
 ```sh
 DEEPSEEK_API_KEY=sk-...
-DEEPSEEK_BASE_URL=https://... # optional
+DEEPSEEK_BASE_URL=https://... # required: your self-hosted Messages endpoint
 ```
 
-`DEEPSEEK_BASE_URL` is optional and defaults to the public API. Never commit real credentials. The real-API e2e suites self-skip when `DEEPSEEK_API_KEY` is not set.
+`DEEPSEEK_BASE_URL` has no default; without it or a `baseURL` on the Models page, model requests fail locally. Never commit real credentials. The real-API e2e suites self-skip when `DEEPSEEK_API_KEY` is not set.
 
 ### Git integrations
 
