@@ -4,6 +4,7 @@ import { attributionHeaders, LlmAdapter, LlmError } from '@deepseek-ai/dsh-llm'
 import type { GenerateOptions, ImageAttachmentAccessResolver, PreparedAdapterCall, StreamChunk } from '@deepseek-ai/dsh-llm'
 import { idleWatchdog, timeoutOf } from '@deepseek-ai/dsh-timeout'
 import { modelInfo } from './model-info.ts'
+import { UNCONFIGURED_BASE_URL } from './config.ts'
 import type { DeepSeekAdapterOptions, DeepSeekConnectionOptions as Connection } from './types.ts'
 import { DeepSeekFileStore } from './file-store.ts'
 import { MESSAGES_FILES_BETA, MESSAGES_TOOL_CHANGES_BETA, messagesApiRoot } from './messages-api.ts'
@@ -74,6 +75,13 @@ export class DeepSeekAdapter<C extends Connection = Connection> extends LlmAdapt
     options: GenerateOptions, connection: C, signal: AbortSignal, activity: () => void,
   ): AsyncGenerator<StreamChunk> {
     signal.throwIfAborted()
+    if (connection.baseURL === UNCONFIGURED_BASE_URL) {
+      throw new LlmError(
+        `llm-deepseek: provider route "${options.provider}" has no endpoint; set its baseURL on the Models page `
+        + 'or export DEEPSEEK_BASE_URL to the self-hosted Messages endpoint',
+        'MISSING_ENDPOINT',
+      )
+    }
     const { messages, versions } = await prepareImages(
       options.messages, connection, options.model, this.dependencies.resolveAttachments?.(), this.imageAccess, signal,
     )

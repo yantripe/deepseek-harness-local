@@ -1,13 +1,11 @@
-/** Origin-scoped boot, native directory selection, host paths of picked files, and update presentation with native confirmation actions. */
+/** Origin-scoped boot, native directory selection, and host paths of picked files. */
 
 import type { DesktopShortcutInput, ShortcutConfigSnapshot, ShortcutSaveResult } from '@deepseek-ai/dsh-client-shortcuts/protocol'
 import { contextBridge, ipcRenderer, webUtils } from 'electron'
-import { DESKTOP_IPC, SCHEME, type DshDesktopProductApi, type DesktopUpdatePresentation } from './ipc.ts'
-import { PLATFORM_IPC } from './platform-ipc.ts'
+import { DESKTOP_IPC, SCHEME, type DshDesktopProductApi } from './ipc.ts'
 import { markDocumentPlatform, syncWindowFullscreen } from './preload-platform.ts'
 import { syncNativeTheme } from './preload-theme.ts'
 import { syncWindowsAppearance } from './preload-windows.ts'
-import { installMandatoryUpdateOverlay } from './preload-mandatory-overlay.ts'
 import { createDesktopBrowserBridge } from './preload-browser.ts'
 
 function createProductApi(): DshDesktopProductApi {
@@ -46,33 +44,11 @@ function createProductApi(): DshDesktopProductApi {
         return () => { ipcRenderer.off(DESKTOP_IPC.shortcutsChanged, handle) }
       },
     },
-    updates: {
-      status: () => ipcRenderer.invoke(DESKTOP_IPC.updatesStatus) as Promise<DesktopUpdatePresentation>,
-      open: () => ipcRenderer.invoke(DESKTOP_IPC.updatesOpen) as Promise<void>,
-      subscribe(listener) {
-        const handle = (_event: Electron.IpcRendererEvent, state: DesktopUpdatePresentation): void => { listener(state) }
-        ipcRenderer.on(DESKTOP_IPC.updatesPresentation, handle)
-        return () => { ipcRenderer.off(DESKTOP_IPC.updatesPresentation, handle) }
-      },
-    },
   }
 }
 
 if (location.protocol === `${SCHEME}:` && location.hostname === 'app') {
-  contextBridge.exposeInMainWorld('dshOnboarding', {
-    hasApiKey: () => ipcRenderer.invoke(DESKTOP_IPC.onboardingApiKey) as Promise<boolean>,
-    setActive: (active: boolean) => { ipcRenderer.send(DESKTOP_IPC.onboardingActive, active) },
-  })
-  ipcRenderer.on(DESKTOP_IPC.enterWorkspace, () => {
-    const body = document.body
-    const previous = body.getAttribute('tabindex')
-    body.tabIndex = -1
-    body.focus({ preventScroll: true })
-    if (previous === null) body.removeAttribute('tabindex')
-    else body.setAttribute('tabindex', previous)
-  })
   syncWindowsAppearance()
-  if (process.platform === 'win32') installMandatoryUpdateOverlay()
   contextBridge.exposeInMainWorld('__DSH_DIRECTORY_PICKER__', {
     pick: () => ipcRenderer.invoke(DESKTOP_IPC.directoryPick) as Promise<string | null>,
   })
@@ -85,11 +61,6 @@ if (location.protocol === `${SCHEME}:` && location.hostname === 'app') {
   contextBridge.exposeInMainWorld('dshDesktopBoot', {
     ready: () => ipcRenderer.invoke(DESKTOP_IPC.boot) as Promise<unknown>,
     failed: (message: string) => ipcRenderer.invoke(DESKTOP_IPC.bootFailed, message) as Promise<void>,
-  })
-  contextBridge.exposeInMainWorld('dshPlatform', {
-    open: (page: 'usage' | 'top-up', bounds: { x: number; y: number; width: number; height: number }) => ipcRenderer.invoke(PLATFORM_IPC.open, page, bounds),
-    setBounds: (bounds: { x: number; y: number; width: number; height: number }) => ipcRenderer.invoke(PLATFORM_IPC.bounds, bounds),
-    close: () => ipcRenderer.invoke(PLATFORM_IPC.close),
   })
 }
 

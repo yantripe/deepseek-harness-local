@@ -34,7 +34,6 @@ kind: "package-group"
 | [`directory-picker-auto/`](directory-picker-auto/README.zh.md) | 在启动时挂载匹配后端的宿主自适应选择器 | 挂载一个后端 |
 | [`open-in-app/`](open-in-app/README.zh.md) | 在已安装应用中打开 workspace 目录的应用探测、图标与启动路由 | 消费 `ctx.webServer` |
 | [`plugin-inventory/`](plugin-inventory/README.zh.md) | 当前 Loader 条目的只读投影 | Remote `pluginInventory/list` |
-| [`product-telemetry-otel/`](product-telemetry-otel/README.zh.md) | 通过 OTLP/HTTP 显式上报产品使用事件 | `ctx.productTelemetry` |
 
 -----
 
@@ -46,7 +45,6 @@ kind: "package-group"
 - [HTTP 服务器子系统](../../docs/subsystems/web-server.zh.md)——webserver 的路由、匹配顺序与配置。
 - [工作区子系统](../../docs/subsystems/workspace.zh.md)——目录选择器所喂给的工作区记录。
 - [Web 配置树启动与传输分层](../../.agents/notes/implemented/architecture/2026-07-24-web-config-tree-boot-and-transport-layering.zh.md)——Web 传输各层的所有权。
-- [产品埋点](../../docs/subsystems/product-telemetry.zh.md)——显式提交分析事件。
 
 <a id="dev-note"></a>
 ## 开发备注

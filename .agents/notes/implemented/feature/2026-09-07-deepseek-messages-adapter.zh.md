@@ -24,7 +24,7 @@ Messages 以原生协议字段表示思考、签名、工具调用、工具结�
 
 Web 显示 DeepSeek，并提供端点与凭据引用。没有端点覆盖时，解析使用 `https://api.deepseek.com/anthropic`。覆盖地址必须支持 Messages。适配器遵循精确 `/v1` 根地址规则，不从其他类似版本的后缀推断兼容性。单一模型目录公布各条目声明的能力。
 
-适配器在原生序列化后使用现有[请求扩展注册表](../architecture/2026-08-21-deepseek-llm-api-request-extensions.zh.md)，并在 HTTP 2xx 后、读取流之前接受已捕获贡献。会话日志投递和插件清单仍由原有包负责，并留在模型输入之外。辅助 [web 搜索提供方](../../../../packages/web/web-search-deepseek/README.zh.md)保留独立的端点、请求与设置。
+适配器在原生序列化后使用现有[请求扩展注册表](../architecture/2026-08-21-deepseek-llm-api-request-extensions.zh.md)，并在 HTTP 2xx 后、读取流之前接受已捕获贡献。会话日志投递和插件清单仍由原有包负责，并留在模型输入之外。辅助 web 搜索提供方保留独立的端点、请求与设置。
 
 ## 考虑过的替代方案
 

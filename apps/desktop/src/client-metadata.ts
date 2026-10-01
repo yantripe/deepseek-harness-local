@@ -1,5 +1,4 @@
-/** Desktop client identity for one Platform account call. */
-import type { AccountClientMetadata } from '@deepseek-ai/dsh-deepseek-account/types'
+/** Desktop client build identity handed to the Host. */
 
 /**
  * Read the client build version inlined by the Desktop build.
@@ -9,21 +8,7 @@ import type { AccountClientMetadata } from '@deepseek-ai/dsh-deepseek-account/ty
 export function desktopClientVersion(): string {
   const version = process.env.DSH_CLIENT_VERSION
   if (version === undefined || version === '') {
-    throw new Error('desktop account: this application build carries no DSH_CLIENT_VERSION')
+    throw new Error('desktop: this application build carries no DSH_CLIENT_VERSION')
   }
   return version
-}
-
-/**
- * Sample the Desktop client identity for one Platform request.
- * @param locale - current resolved Desktop language.
- * @returns this call's build version, the raw active language, and the UTC offset in whole seconds east.
- */
-export function desktopClientMetadata(locale: string): AccountClientMetadata {
-  return {
-    version: desktopClientVersion(),
-    locale,
-    // Date.getTimezoneOffset reports minutes west of UTC; Platform wants seconds east.
-    timezoneOffsetSeconds: -new Date().getTimezoneOffset() * 60,
-  }
 }

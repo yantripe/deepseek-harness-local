@@ -53,7 +53,7 @@ Ordinary rounded surfaces use the theme's `superellipse(1.5)` curve where suppor
 
 Preserve intentional circles and capsules: avatars and status dots use `50%`; explicit pills and full-round tracks may use `999px`. Pair every such full-round declaration with `corner-shape: round` in the same rule. Do not turn every button into a capsule just because its height is small. Tiny drawing details, such as glyph marks or miniature tracks, may retain their established local geometry; they do not justify arbitrary radii on surrounding controls.
 
-Both the avatar container and its `img` must remain circular; an image that inherits only `border-radius` still needs an explicit `corner-shape: round` or must inherit the curve from its circular container. Keep equal width and height on both. See [Account settings](../packages/client/ui-settings-account/README.md#use-this-package) for account avatar sizes.
+Both the avatar container and its `img` must remain circular; an image that inherits only `border-radius` still needs an explicit `corner-shape: round` or must inherit the curve from its circular container. Keep equal width and height on both.
 
 Edge-to-edge docked surfaces and adjoining cells may use R0 on shared edges. A header, footer, or image flush with a card rounds only its exposed outer corners; preserve square internal joins rather than rounding every child on all four sides.
 

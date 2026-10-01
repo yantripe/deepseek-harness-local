@@ -88,7 +88,6 @@ Read these pages when you need the launcher or the consumers that depend on a si
 
 - [Boot package](../../boot/app-boot/README.md) — the launcher that resolves the home before any plugin mounts.
 - [Shell environment](../../shell/shell-env/README.md) — how `DSH_HOME` reaches model shell calls.
-- [Anonymous user id](../../identity/anonymous-user-id/README.md) — a stored identity file under the resolved home.
 
 -----
 

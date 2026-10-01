@@ -10,11 +10,6 @@ import {
   resolveMacOSNotarizationEnvironment,
   resolveMacOSSigningEnvironment,
 } from './desktop-release-environment.mjs'
-import {
-  desktopUpdateMetadataFilename,
-  resolveDesktopAutoUpdateConfig,
-} from './desktop-auto-update-environment.mjs'
-import { verifyMacOSAppUpdateConfig } from './macos-app-update-config.mjs'
 import { verifyMacOSNotarizedApplication, verifyMacOSSignature } from './verify-macos-signature.mjs'
 
 const execute = promisify(execFile)
@@ -77,7 +72,6 @@ export async function packageMacOSArtifacts(
   const secrets = Object.entries(environment).filter(([name]) => /KEY|SECRET|TOKEN|PASSWORD|APPLE_ID/iu.test(name)).map(([, value]) => value ?? '')
   const expected = resolveMacOSSigningEnvironment(environment)
   const credentials = resolveMacOSNotarizationEnvironment(environment)
-  const update = resolveDesktopAutoUpdateConfig(environment, 'darwin', arch)
   const appPath = join(artifactsRoot, arch === 'arm64' ? 'mac-arm64' : 'mac', 'DeepSeek Harness.app')
   const root = await mkdtemp(join(dirname(artifactsRoot), 'notarization-'))
   const zipApp = join(root, 'zip', basename(appPath))
@@ -85,11 +79,8 @@ export async function packageMacOSArtifacts(
   const zipOutput = join(root, 'zip-artifacts')
   const dmgOutput = join(root, 'dmg-artifacts')
   try {
-    await verifyMacOSAppUpdateConfig(appPath, update)
     await apple.copyApp(appPath, zipApp)
     await apple.copyApp(appPath, dmgApp)
-    await verifyMacOSAppUpdateConfig(zipApp, update)
-    await verifyMacOSAppUpdateConfig(dmgApp, update)
     apple.verifySignature(zipApp, expected)
     apple.verifySignature(dmgApp, expected)
     const results = await Promise.allSettled([
@@ -106,16 +97,12 @@ export async function packageMacOSArtifacts(
     if (failures.length > 0) {
       throw new AggregateError(failures.map(result => result.reason), 'desktop macOS packaging: artifact lanes failed')
     }
-    await verifyMacOSAppUpdateConfig(zipApp, update)
-    await verifyMacOSAppUpdateConfig(dmgApp, update)
     apple.verifySignature(zipApp, expected)
     apple.verifySignature(dmgApp, expected)
     const base = `deepseek-harness-${version}-mac-${arch}`
     const artifacts = [
       [dmgOutput, `${base}.dmg`],
       [zipOutput, `${base}.zip`],
-      [zipOutput, `${base}.zip.blockmap`],
-      [zipOutput, desktopUpdateMetadataFilename(version, 'darwin')],
     ] as const
     for (const [output, filename] of artifacts) {
       const file = join(output, filename)

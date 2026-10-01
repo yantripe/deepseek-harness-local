@@ -851,7 +851,7 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 #### `session-log-deepseek/delivery-accepted` — log-only
 
 ```ts persistence-catalog
-/** Records that the configured endpoint accepted one delivery through `throughSeq`. */
+/** Retired DeepSeek session-log upload watermark through `throughSeq`. */
 'session-log-deepseek/delivery-accepted': {
   /** Session identity the accepted delivery carried; inherited fork markers retain the parent's id. */
   sessionId: import('@deepseek-ai/dsh-session/types').SessionId
@@ -862,7 +862,7 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 }
 ```
 
-来源：[`packages/session/session-log-deepseek/src/types.ts:81`](../packages/session/session-log-deepseek/src/types.ts)
+来源：[`packages/core/session/src/retired-events.ts:12`](../packages/core/session/src/retired-events.ts)
 
 ### `step/*`
 
@@ -1260,11 +1260,33 @@ export type SessionEvent<T extends SessionEventType = SessionEventType> = {
 #### `web/deepseek-search-llm-request` — log-only
 
 ```ts persistence-catalog
-/** Secret-free auxiliary DeepSeek search request recorded before dispatch. */
-'web/deepseek-search-llm-request': DeepSeekSearchLlmRequest
+/** Retired secret-free DeepSeek native search request recorded before dispatch. */
+'web/deepseek-search-llm-request': {
+  /** Fully resolved Messages endpoint. */
+  readonly endpoint: string
+  /** `anthropic-version` header value. */
+  readonly apiVersion: string
+  /** Exact JSON body sent to the provider. */
+  readonly body: {
+    readonly model: string
+    readonly max_tokens: number
+    readonly messages: readonly [{
+      readonly role: 'user'
+      readonly content: readonly [{
+        readonly type: 'text'
+        readonly text: string
+      }]
+    }]
+    readonly tools: readonly [{
+      readonly type: 'web_search_20250305'
+      readonly name: 'web_search'
+      readonly max_uses: number
+    }]
+  }
+}
 ```
 
-来源：[`packages/web/web-search-deepseek/src/provider.ts:82`](../packages/web/web-search-deepseek/src/provider.ts)
+来源：[`packages/core/session/src/retired-events.ts:21`](../packages/core/session/src/retired-events.ts)
 
 ### `workspace/*`
 
@@ -3207,24 +3229,6 @@ SHA-256: `6487b10ba7542f3c447b1e41a1c6a590b7bfafe0b9b66b49f34028da85bb970f`
 | `toolFilter` | 可选 | [`ToolRestriction`](#persistence-type-sha256-3cfc3a56502da1f8c6153c2c56657bab4b749056968634dd0991d325ec1c919f) |
 | `version` | 必需 | `number` |
 
-<a id="persistence-type-sha256-2517ba143a271508d3ca35126d5aca8f7f1facf5aaddce4adf011832042fa2b9"></a>
-
-<a id="persistence-type-deepseeksearchllmrequest"></a>
-
-<a id="persistence-type-packageswebweb-search-deepseeksrcprovidertsdeepseeksearchllmrequest"></a>
-
-### `DeepSeekSearchLlmRequest`
-
-SHA-256: `2517ba143a271508d3ca35126d5aca8f7f1facf5aaddce4adf011832042fa2b9`
-
-来源：[`packages/web/web-search-deepseek/src/provider.ts:55`](../packages/web/web-search-deepseek/src/provider.ts)
-
-| 属性 | 存在性 | 类型 |
-|---|---|---|
-| `apiVersion` | 必需 | `string` |
-| `body` | 必需 | [`{ max_tokens, messages, model, tools }`](#persistence-type-sha256-930a6567a10bb62ddd157bd8abdf4b182810c8c3b49d91309b3b009a5fed9731) |
-| `endpoint` | 必需 | `string` |
-
 <a id="persistence-type-sha256-1020bbc3c744c060cd31c0891ae79b9e4c3e0adfa3f0be49869309b34e9ef200"></a>
 
 <a id="persistence-type-developermessage"></a>
@@ -4817,7 +4821,7 @@ SHA-256: `b2d2a01e51341a3bfec809198952c8c830a7899f4cb6ecd3c1dc0b5d9a2af943`
 
 SHA-256: `4e887768586528565381dadbddee6cef555874148089f4579e0b4b1ad096fc9c`
 
-来源：[`packages/llm/llm/src/types.ts:62`](../packages/llm/llm/src/types.ts) · [`packages/web/web-search-deepseek/src/provider.ts:66`](../packages/web/web-search-deepseek/src/provider.ts)
+来源：[`packages/core/session/src/retired-events.ts:32`](../packages/core/session/src/retired-events.ts) · [`packages/llm/llm/src/types.ts:62`](../packages/llm/llm/src/types.ts)
 
 | 属性 | 存在性 | 类型 |
 |---|---|---|
@@ -5540,6 +5544,20 @@ SHA-256: `0d47a8f3d847243c4488e755ad4cab7a04ac5d4621b9c81865524cf3f4d8536f`
 | 属性 | 存在性 | 类型 |
 |---|---|---|
 | `allowedModels` | 必需 | [`SessionTitleModelIdentity[]`](#persistence-type-sha256-ba77b58995e36f14bb13886b0493d0a1a63d5db10b1a6cd9f6ac65a72cf832ec) |
+
+<a id="persistence-type-sha256-2517ba143a271508d3ca35126d5aca8f7f1facf5aaddce4adf011832042fa2b9"></a>
+
+### `{ apiVersion, body, endpoint }`
+
+SHA-256: `2517ba143a271508d3ca35126d5aca8f7f1facf5aaddce4adf011832042fa2b9`
+
+来源：[`packages/core/session/src/retired-events.ts:21`](../packages/core/session/src/retired-events.ts)
+
+| 属性 | 存在性 | 类型 |
+|---|---|---|
+| `apiVersion` | 必需 | `string` |
+| `body` | 必需 | [`{ max_tokens, messages, model, tools }`](#persistence-type-sha256-930a6567a10bb62ddd157bd8abdf4b182810c8c3b49d91309b3b009a5fed9731) |
+| `endpoint` | 必需 | `string` |
 
 <a id="persistence-type-sha256-a853902cfab417b8f08aa51ad6855fea46f34ed4588a74e47403035111d0fb86"></a>
 
@@ -7394,7 +7412,7 @@ SHA-256: `9edc162949abf93bd5ff049191b345454ba104f583937ce5580fb50f067d2b94`
 
 SHA-256: `930a6567a10bb62ddd157bd8abdf4b182810c8c3b49d91309b3b009a5fed9731`
 
-来源：[`packages/web/web-search-deepseek/src/provider.ts:61`](../packages/web/web-search-deepseek/src/provider.ts)
+来源：[`packages/core/session/src/retired-events.ts:27`](../packages/core/session/src/retired-events.ts)
 
 | 属性 | 存在性 | 类型 |
 |---|---|---|
@@ -7517,7 +7535,7 @@ SHA-256: `e481c46af3813e0010558e93f578b2986acd658404cec2d1679e3ac2a6c48654`
 
 SHA-256: `9a2a9029f8d7ede05336980d8342737557f487b913bfd28853d0ab5214600ab5`
 
-来源：[`packages/web/web-search-deepseek/src/provider.ts:64`](../packages/web/web-search-deepseek/src/provider.ts)
+来源：[`packages/core/session/src/retired-events.ts:30`](../packages/core/session/src/retired-events.ts)
 
 | 属性 | 存在性 | 类型 |
 |---|---|---|
@@ -7530,7 +7548,7 @@ SHA-256: `9a2a9029f8d7ede05336980d8342737557f487b913bfd28853d0ab5214600ab5`
 
 SHA-256: `8bb8c3751a6ce64b61aba1ec7ae798c00a5803c4d868a0430873216c6569ed52`
 
-来源：[`packages/session/session-log-deepseek/src/types.ts:81`](../packages/session/session-log-deepseek/src/types.ts)
+来源：[`packages/core/session/src/retired-events.ts:12`](../packages/core/session/src/retired-events.ts)
 
 | 属性 | 存在性 | 类型 |
 |---|---|---|
@@ -8723,7 +8741,7 @@ SHA-256: `cf6e3aaf1e2de6480aa0157730a41b9a492108a55304100b0f7e112711dd4331`
 
 | 属性 | 存在性 | 类型 |
 |---|---|---|
-| `data` | 必需 | [`DeepSeekSearchLlmRequest`](#persistence-type-sha256-2517ba143a271508d3ca35126d5aca8f7f1facf5aaddce4adf011832042fa2b9) |
+| `data` | 必需 | [`{ apiVersion, body, endpoint }`](#persistence-type-sha256-2517ba143a271508d3ca35126d5aca8f7f1facf5aaddce4adf011832042fa2b9) |
 | `ignorable` | 可选 | `true` |
 | `seq` | 必需 | `number` |
 | `time` | 必需 | `number` |
@@ -8735,7 +8753,7 @@ SHA-256: `cf6e3aaf1e2de6480aa0157730a41b9a492108a55304100b0f7e112711dd4331`
 
 SHA-256: `2d11ca7b0d4493e244b74eba093227866b33249841e59a1e9bf56afed38604c3`
 
-来源：[`packages/web/web-search-deepseek/src/provider.ts:71`](../packages/web/web-search-deepseek/src/provider.ts)
+来源：[`packages/core/session/src/retired-events.ts:37`](../packages/core/session/src/retired-events.ts)
 
 | 属性 | 存在性 | 类型 |
 |---|---|---|

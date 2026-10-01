@@ -16,7 +16,7 @@ const MODEL_MODALITIES = ['text', 'image'] as const satisfies readonly ModelModa
 
 /** Shared Messages request configuration, without provider credential selection. */
 export interface Config {
-  /** Endpoint base; falls back to $DEEPSEEK_BASE_URL from a trusted environment layer, then the public API. */
+  /** Endpoint base; falls back to $DEEPSEEK_BASE_URL from a trusted environment layer. Requests fail locally while neither is set. */
   baseURL: Volatile<string | undefined>
   /** Deployment thinking policy; `disabled` limits every conversation request to `off`. */
   thinking: Volatile<'enabled' | 'disabled' | undefined>
@@ -102,8 +102,12 @@ export const deepSeekConfigFields = {
 
 export const Config = z.object(deepSeekConfigFields)
 
-/** Public API default; the internal endpoint comes from $DEEPSEEK_BASE_URL. */
-export const PUBLIC_BASE_URL = 'https://api.deepseek.com/anthropic'
+/**
+ * Resolved endpoint while no baseURL is configured. There is deliberately no
+ * public default: an unconfigured deployment must not send requests to a
+ * vendor endpoint, so the adapter rejects every request until one is set.
+ */
+export const UNCONFIGURED_BASE_URL = ''
 
 /** Environment variable naming this provider's endpoint, honored only from trusted layers. */
 const BASE_URL_ENV = 'DEEPSEEK_BASE_URL'
@@ -287,10 +291,12 @@ export function resolveAdapterOptions(config: Options, environment?: LaunchEnvir
     || fileQuotaCleanupBatch > 1_000) {
     throw new Error('llm-deepseek: fileQuotaCleanupBatch must be an integer from 1 through 1000')
   }
-  const baseURL = config.baseURL ?? environment?.get(BASE_URL_ENV)?.value ?? PUBLIC_BASE_URL
-  const parsed = new URL(baseURL)
-  if (!['http:', 'https:'].includes(parsed.protocol) || parsed.username || parsed.password || parsed.search || parsed.hash) {
-    throw new Error('llm-deepseek: Messages baseURL must be an HTTP(S) root without credentials, query, or fragment')
+  const baseURL = config.baseURL ?? environment?.get(BASE_URL_ENV)?.value ?? UNCONFIGURED_BASE_URL
+  if (baseURL !== UNCONFIGURED_BASE_URL) {
+    const parsed = new URL(baseURL)
+    if (!['http:', 'https:'].includes(parsed.protocol) || parsed.username || parsed.password || parsed.search || parsed.hash) {
+      throw new Error('llm-deepseek: Messages baseURL must be an HTTP(S) root without credentials, query, or fragment')
+    }
   }
   return {
     baseURL,

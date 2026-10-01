@@ -29,6 +29,4 @@
   - button "排队发送"
   - text: 性能与用量 选择性能与用量信息展示的详细程度
   - button "详细"
-  - text: 在使用官方模型 API 时上传 Session Log 帮助改进 DeepSeek 模型与产品
-  - switch "在使用官方模型 API 时上传 Session Log"
   - text: 当前版本：{{version}}

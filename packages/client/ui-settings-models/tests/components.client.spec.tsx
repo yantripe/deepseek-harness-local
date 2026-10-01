@@ -643,7 +643,7 @@ describe('ModelsSection', () => {
     const baseURL = screen.getByLabelText<HTMLInputElement>(en.baseUrl)
     // The deepseek placeholder is pinned to the public endpoint, not the
     // effective value (which may reflect a launch-environment override).
-    expect(baseURL.placeholder).toBe('https://api.deepseek.com/anthropic')
+    expect(baseURL.placeholder).toBe('https://your-model-host/anthropic')
     fireEvent.change(baseURL, { target: { value: 'https://next2' } })
     fireEvent.click(screen.getByText(en.apply))
     await waitFor(() => { expect(mutate).toHaveBeenCalledTimes(1) })
@@ -715,7 +715,7 @@ describe('ModelsSection', () => {
     />)
     fireEvent.click(screen.getByText(en.customized))
     expect(screen.getByLabelText<HTMLInputElement>(en.baseUrl).placeholder)
-      .toBe('https://api.deepseek.com/anthropic')
+      .toBe('https://your-model-host/anthropic')
     expect(screen.queryByLabelText(en.customApi)).toBeNull()
     expect(screen.getByText(en.deepSeekEndpointHint)).toBeTruthy()
     fireEvent.change(screen.getByLabelText(en.keyInput), { target: { value: 'sk-messages-test' } })
@@ -1127,7 +1127,7 @@ describe('ModelsSection', () => {
     />)
     fireEvent.click(screen.getByText(en.customized))
     const baseURL = screen.getByLabelText<HTMLInputElement>(en.baseUrl)
-    expect(baseURL.placeholder).toBe('https://api.deepseek.com/anthropic')
+    expect(baseURL.placeholder).toBe('https://your-model-host/anthropic')
     fireEvent.change(baseURL, { target: { value: 'https://x' } })
     expect(baseURL.value).toBe('https://x')
     fireEvent.change(baseURL, { target: { value: '' } })

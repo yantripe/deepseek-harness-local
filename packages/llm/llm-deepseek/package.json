@@ -46,7 +46,6 @@
   },
   "devDependencies": {
     "@deepseek-ai/dsh-llm-deepseek-api-key": "workspace:*",
-    "@deepseek-ai/dsh-llm-deepseek-account": "workspace:*",
     "@deepseek-ai/cordis": "workspace:~",
     "@deepseek-ai/dsh-agent": "workspace:*",
     "@deepseek-ai/dsh-atomic-write": "workspace:*",
@@ -67,8 +66,7 @@
     "@deepseek-ai/dsh-system-prompt": "workspace:*",
     "@deepseek-ai/dsh-tools": "workspace:*",
     "@deepseek-ai/dsh-credentials-local": "workspace:*",
-    "@deepseek-ai/dsh-settings": "workspace:*",
-    "@deepseek-ai/dsh-deepseek-account": "workspace:*"
+    "@deepseek-ai/dsh-settings": "workspace:*"
   },
   "peerDependenciesMeta": {
     "@deepseek-ai/cordis-plugin-loader": {

@@ -53,13 +53,6 @@ External packages installed for runtime use or distributed inside the prebuilt b
 | [`@noble/hashes`](https://github.com/paulmillr/noble-hashes) | MIT |
 | [`@octokit/webhooks`](https://github.com/octokit/webhooks.js) | MIT |
 | [`@openai/codex`](https://github.com/openai/codex) | Apache-2.0 |
-| [`@opentelemetry/api`](https://github.com/open-telemetry/opentelemetry-js) | Apache-2.0 |
-| [`@opentelemetry/api-logs`](https://github.com/open-telemetry/opentelemetry-js) | Apache-2.0 |
-| [`@opentelemetry/core`](https://github.com/open-telemetry/opentelemetry-js) | Apache-2.0 |
-| [`@opentelemetry/otlp-exporter-base`](https://github.com/open-telemetry/opentelemetry-js) | Apache-2.0 |
-| [`@opentelemetry/otlp-transformer`](https://github.com/open-telemetry/opentelemetry-js) | Apache-2.0 |
-| [`@opentelemetry/resources`](https://github.com/open-telemetry/opentelemetry-js) | Apache-2.0 |
-| [`@opentelemetry/sdk-logs`](https://github.com/open-telemetry/opentelemetry-js) | Apache-2.0 |
 | [`@playwright/mcp`](https://github.com/microsoft/playwright-mcp) | Apache-2.0 |
 | [`@puppeteer/browsers`](https://github.com/puppeteer/puppeteer/tree/main/packages/browsers) | Apache-2.0 |
 | [`@shikijs/langs`](https://github.com/shikijs/shiki) | MIT |
@@ -75,7 +68,6 @@ External packages installed for runtime use or distributed inside the prebuilt b
 | [`acorn`](https://github.com/acornjs/acorn) | MIT |
 | [`ajv`](https://github.com/ajv-validator/ajv) | MIT |
 | [`anser`](https://github.com/IonicaBizau/anser) | MIT |
-| [`big.js`](https://github.com/MikeMcl/big.js) | MIT |
 | [`buffer`](https://github.com/feross/buffer) | MIT |
 | [`chokidar`](https://github.com/paulmillr/chokidar) | MIT |
 | [`chrome-devtools-mcp`](https://github.com/ChromeDevTools/chrome-devtools-mcp) | Apache-2.0 |
@@ -84,13 +76,11 @@ External packages installed for runtime use or distributed inside the prebuilt b
 | [`compression`](https://github.com/expressjs/compression) | MIT |
 | [`diff`](https://github.com/kpdecker/jsdiff) | BSD-3-Clause |
 | [`dompurify`](https://github.com/cure53/DOMPurify) | (MPL-2.0 OR Apache-2.0) |
-| [`electron-updater`](https://github.com/electron-userland/electron-builder) | MIT |
 | [`eventsource-parser`](https://github.com/rexxars/eventsource-parser) | MIT |
 | [`exceljs`](https://github.com/exceljs/exceljs) | MIT |
 | [`execa`](https://github.com/sindresorhus/execa) | MIT |
 | [`fast-xml-parser`](https://github.com/NaturalIntelligence/fast-xml-parser) | MIT |
 | [`fflate`](https://github.com/101arrowz/fflate) | MIT |
-| [`got`](https://github.com/sindresorhus/got) | MIT |
 | [`immer`](https://github.com/immerjs/immer) | MIT |
 | [`ipaddr.js`](https://github.com/whitequark/ipaddr.js) | MIT |
 | [`js-yaml`](https://github.com/nodeca/js-yaml) | MIT |
@@ -191,7 +181,6 @@ External packages **directly declared** for development, tests, types, or toolin
 | [`@testing-library/dom`](https://github.com/testing-library/dom-testing-library) | MIT |
 | [`@testing-library/react`](https://github.com/testing-library/react-testing-library) | MIT |
 | [`@types/babel__code-frame`](https://github.com/DefinitelyTyped/DefinitelyTyped) | MIT |
-| [`@types/big.js`](https://github.com/DefinitelyTyped/DefinitelyTyped) | MIT |
 | [`@types/compression`](https://github.com/DefinitelyTyped/DefinitelyTyped) | MIT |
 | [`@types/js-yaml`](https://github.com/DefinitelyTyped/DefinitelyTyped) | MIT |
 | [`@types/jsdom`](https://github.com/DefinitelyTyped/DefinitelyTyped) | MIT |
@@ -215,7 +204,6 @@ External packages **directly declared** for development, tests, types, or toolin
 | [`@yao-pkg/pkg`](https://github.com/yao-pkg/pkg) | MIT |
 | [`@yarnpkg/cli-dist`](https://github.com/yarnpkg/berry) | BSD-2-Clause |
 | [`app-builder-lib`](https://github.com/electron-userland/electron-builder) | MIT |
-| [`cos-nodejs-sdk-v5`](https://github.com/tencentyun/cos-nodejs-sdk-v5) | ISC |
 | [`cytoscape`](https://github.com/cytoscape/cytoscape.js) | MIT |
 | [`cytoscape-cose-bilkent`](https://github.com/cytoscape/cytoscape.js-cose-bilkent) | MIT |
 | [`dayjs`](https://github.com/iamkun/dayjs) | MIT |

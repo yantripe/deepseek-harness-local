@@ -21,6 +21,7 @@ import type { SessionSurface, SessionMessageProjection } from './surface.ts'
 import { foldRequestHeader } from './request-header.ts'
 import { ToolHistoryProjection } from './tool-history.ts'
 import type { ToolHistory } from '@deepseek-ai/dsh-llm'
+import type {} from './retired-events.ts'
 
 import { buildForkSeed } from './fork.ts'
 

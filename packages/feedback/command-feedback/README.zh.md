@@ -105,7 +105,6 @@ Web 客户端随附该命令。无头模式、ACP 自动化和 JSON-RPC 不提�
 
 - [dsh-commands](../../interaction/commands/README.zh.md)——发现全局命令并定义 `recordInput` 语义的注册表。
 - [会话持久化子系统](../../../docs/subsystems/persistence.zh.md)——追加事件如何持久化、flush 屏障的含义。
-- [匿名用户身份](../../identity/anonymous-user-id/README.zh.md)——确认文本报告的 id。
 - [ui-message-feedback](../../client/ui-message-feedback/README.zh.md)——通过 `sessionFeedback` Remote 记录的 Web 反馈弹窗。
 - [反馈包索引](../README.zh.md)——展示仅写入日志的采集与逐消息反馈在包中的并列位置。
 

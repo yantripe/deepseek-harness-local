@@ -33,8 +33,6 @@ Per-message ratings and notes are stored with the session, survive restarts, and
 ## Related documentation
 
 - [Feedback subsystem](../../docs/subsystems/feedback.md) — the message-feedback types, service contract, and Web consumer.
-- [Session telemetry subsystem](../../docs/subsystems/session-telemetry.md) — the sharing policy disclosed by the `/feedback` acknowledgement.
-- [Anonymous user identity](../identity/README.md) — the per-harness-home id embedded in the feedback acknowledgement.
 
 <a id="dev-note"></a>
 ## Dev Note

@@ -194,9 +194,7 @@ describe('Chat inject API', () => {
     const fork = vi.spyOn(b.runtime.sessions, 'fork').mockRejectedValueOnce(new Error('fork failed'))
     injected.forkAt(18)
     await vi.waitFor(() => {
-      expect(fork).toHaveBeenCalledWith({
-        sessionId: ROOT, atSeq: 18, increaseTitle: true, onCreated: expect.any(Function) as (childId: SessionId) => void,
-      })
+      expect(fork).toHaveBeenCalledWith({ sessionId: ROOT, atSeq: 18, increaseTitle: true })
     })
     await b.runtime.dispose()
   })

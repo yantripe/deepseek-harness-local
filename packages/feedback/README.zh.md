@@ -33,8 +33,6 @@ feedback 组收集用户对 harness 工作成果的意见：用户可以提交�
 ## 相关文档
 
 - [反馈子系统](../../docs/subsystems/feedback.zh.md)——message-feedback 的类型、服务约定与 Web 消费方。
-- [会话遥测子系统](../../docs/subsystems/session-telemetry.zh.md)——`/feedback` 确认文本披露的共享策略。
-- [匿名用户身份](../identity/README.zh.md)——反馈确认文本中嵌入的 id，每个 harness home 各有一个。
 
 <a id="dev-note"></a>
 ## 开发备注

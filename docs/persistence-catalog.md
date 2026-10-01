@@ -849,7 +849,7 @@ Source: [`packages/session/session-title-llm/src/index.ts:52`](../packages/sessi
 #### `session-log-deepseek/delivery-accepted` — log-only
 
 ```ts persistence-catalog
-/** Records that the configured endpoint accepted one delivery through `throughSeq`. */
+/** Retired DeepSeek session-log upload watermark through `throughSeq`. */
 'session-log-deepseek/delivery-accepted': {
   /** Session identity the accepted delivery carried; inherited fork markers retain the parent's id. */
   sessionId: import('@deepseek-ai/dsh-session/types').SessionId
@@ -860,7 +860,7 @@ Source: [`packages/session/session-title-llm/src/index.ts:52`](../packages/sessi
 }
 ```
 
-Source: [`packages/session/session-log-deepseek/src/types.ts:81`](../packages/session/session-log-deepseek/src/types.ts)
+Source: [`packages/core/session/src/retired-events.ts:12`](../packages/core/session/src/retired-events.ts)
 
 ### `step/*`
 
@@ -1258,11 +1258,33 @@ Source: [`packages/core/session/src/types.ts:309`](../packages/core/session/src/
 #### `web/deepseek-search-llm-request` — log-only
 
 ```ts persistence-catalog
-/** Secret-free auxiliary DeepSeek search request recorded before dispatch. */
-'web/deepseek-search-llm-request': DeepSeekSearchLlmRequest
+/** Retired secret-free DeepSeek native search request recorded before dispatch. */
+'web/deepseek-search-llm-request': {
+  /** Fully resolved Messages endpoint. */
+  readonly endpoint: string
+  /** `anthropic-version` header value. */
+  readonly apiVersion: string
+  /** Exact JSON body sent to the provider. */
+  readonly body: {
+    readonly model: string
+    readonly max_tokens: number
+    readonly messages: readonly [{
+      readonly role: 'user'
+      readonly content: readonly [{
+        readonly type: 'text'
+        readonly text: string
+      }]
+    }]
+    readonly tools: readonly [{
+      readonly type: 'web_search_20250305'
+      readonly name: 'web_search'
+      readonly max_uses: number
+    }]
+  }
+}
 ```
 
-Source: [`packages/web/web-search-deepseek/src/provider.ts:82`](../packages/web/web-search-deepseek/src/provider.ts)
+Source: [`packages/core/session/src/retired-events.ts:21`](../packages/core/session/src/retired-events.ts)
 
 ### `workspace/*`
 
@@ -3205,24 +3227,6 @@ Sources: [`packages/subagent/subagent/src/descriptor.ts:72`](../packages/subagen
 | `toolFilter` | optional | [`ToolRestriction`](#persistence-type-sha256-3cfc3a56502da1f8c6153c2c56657bab4b749056968634dd0991d325ec1c919f) |
 | `version` | required | `number` |
 
-<a id="persistence-type-sha256-2517ba143a271508d3ca35126d5aca8f7f1facf5aaddce4adf011832042fa2b9"></a>
-
-<a id="persistence-type-deepseeksearchllmrequest"></a>
-
-<a id="persistence-type-packageswebweb-search-deepseeksrcprovidertsdeepseeksearchllmrequest"></a>
-
-### `DeepSeekSearchLlmRequest`
-
-SHA-256: `2517ba143a271508d3ca35126d5aca8f7f1facf5aaddce4adf011832042fa2b9`
-
-Sources: [`packages/web/web-search-deepseek/src/provider.ts:55`](../packages/web/web-search-deepseek/src/provider.ts)
-
-| Property | Presence | Type |
-|---|---|---|
-| `apiVersion` | required | `string` |
-| `body` | required | [`{ max_tokens, messages, model, tools }`](#persistence-type-sha256-930a6567a10bb62ddd157bd8abdf4b182810c8c3b49d91309b3b009a5fed9731) |
-| `endpoint` | required | `string` |
-
 <a id="persistence-type-sha256-1020bbc3c744c060cd31c0891ae79b9e4c3e0adfa3f0be49869309b34e9ef200"></a>
 
 <a id="persistence-type-developermessage"></a>
@@ -4815,7 +4819,7 @@ One of:
 
 SHA-256: `4e887768586528565381dadbddee6cef555874148089f4579e0b4b1ad096fc9c`
 
-Sources: [`packages/llm/llm/src/types.ts:62`](../packages/llm/llm/src/types.ts) · [`packages/web/web-search-deepseek/src/provider.ts:66`](../packages/web/web-search-deepseek/src/provider.ts)
+Sources: [`packages/core/session/src/retired-events.ts:32`](../packages/core/session/src/retired-events.ts) · [`packages/llm/llm/src/types.ts:62`](../packages/llm/llm/src/types.ts)
 
 | Property | Presence | Type |
 |---|---|---|
@@ -5538,6 +5542,20 @@ Sources: [`packages/subagent/tool-subagent/src/model-selection-state.ts:17`](../
 | Property | Presence | Type |
 |---|---|---|
 | `allowedModels` | required | [`SessionTitleModelIdentity[]`](#persistence-type-sha256-ba77b58995e36f14bb13886b0493d0a1a63d5db10b1a6cd9f6ac65a72cf832ec) |
+
+<a id="persistence-type-sha256-2517ba143a271508d3ca35126d5aca8f7f1facf5aaddce4adf011832042fa2b9"></a>
+
+### `{ apiVersion, body, endpoint }`
+
+SHA-256: `2517ba143a271508d3ca35126d5aca8f7f1facf5aaddce4adf011832042fa2b9`
+
+Sources: [`packages/core/session/src/retired-events.ts:21`](../packages/core/session/src/retired-events.ts)
+
+| Property | Presence | Type |
+|---|---|---|
+| `apiVersion` | required | `string` |
+| `body` | required | [`{ max_tokens, messages, model, tools }`](#persistence-type-sha256-930a6567a10bb62ddd157bd8abdf4b182810c8c3b49d91309b3b009a5fed9731) |
+| `endpoint` | required | `string` |
 
 <a id="persistence-type-sha256-a853902cfab417b8f08aa51ad6855fea46f34ed4588a74e47403035111d0fb86"></a>
 
@@ -7392,7 +7410,7 @@ Sources: [`packages/webhook/webhook/src/types.ts:74`](../packages/webhook/webhoo
 
 SHA-256: `930a6567a10bb62ddd157bd8abdf4b182810c8c3b49d91309b3b009a5fed9731`
 
-Sources: [`packages/web/web-search-deepseek/src/provider.ts:61`](../packages/web/web-search-deepseek/src/provider.ts)
+Sources: [`packages/core/session/src/retired-events.ts:27`](../packages/core/session/src/retired-events.ts)
 
 | Property | Presence | Type |
 |---|---|---|
@@ -7515,7 +7533,7 @@ Sources: [`packages/core/session/src/types.ts:297`](../packages/core/session/src
 
 SHA-256: `9a2a9029f8d7ede05336980d8342737557f487b913bfd28853d0ab5214600ab5`
 
-Sources: [`packages/web/web-search-deepseek/src/provider.ts:64`](../packages/web/web-search-deepseek/src/provider.ts)
+Sources: [`packages/core/session/src/retired-events.ts:30`](../packages/core/session/src/retired-events.ts)
 
 | Property | Presence | Type |
 |---|---|---|
@@ -7528,7 +7546,7 @@ Sources: [`packages/web/web-search-deepseek/src/provider.ts:64`](../packages/web
 
 SHA-256: `8bb8c3751a6ce64b61aba1ec7ae798c00a5803c4d868a0430873216c6569ed52`
 
-Sources: [`packages/session/session-log-deepseek/src/types.ts:81`](../packages/session/session-log-deepseek/src/types.ts)
+Sources: [`packages/core/session/src/retired-events.ts:12`](../packages/core/session/src/retired-events.ts)
 
 | Property | Presence | Type |
 |---|---|---|
@@ -8721,7 +8739,7 @@ SHA-256: `cf6e3aaf1e2de6480aa0157730a41b9a492108a55304100b0f7e112711dd4331`
 
 | Property | Presence | Type |
 |---|---|---|
-| `data` | required | [`DeepSeekSearchLlmRequest`](#persistence-type-sha256-2517ba143a271508d3ca35126d5aca8f7f1facf5aaddce4adf011832042fa2b9) |
+| `data` | required | [`{ apiVersion, body, endpoint }`](#persistence-type-sha256-2517ba143a271508d3ca35126d5aca8f7f1facf5aaddce4adf011832042fa2b9) |
 | `ignorable` | optional | `true` |
 | `seq` | required | `number` |
 | `time` | required | `number` |
@@ -8733,7 +8751,7 @@ SHA-256: `cf6e3aaf1e2de6480aa0157730a41b9a492108a55304100b0f7e112711dd4331`
 
 SHA-256: `2d11ca7b0d4493e244b74eba093227866b33249841e59a1e9bf56afed38604c3`
 
-Sources: [`packages/web/web-search-deepseek/src/provider.ts:71`](../packages/web/web-search-deepseek/src/provider.ts)
+Sources: [`packages/core/session/src/retired-events.ts:37`](../packages/core/session/src/retired-events.ts)
 
 | Property | Presence | Type |
 |---|---|---|

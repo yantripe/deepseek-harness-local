@@ -28,8 +28,7 @@ vi.mock('node:fs', async importOriginal => ({
 
 afterEach(() => { vi.unstubAllEnvs(); vi.clearAllMocks() })
 
-const environment = { DSH_DESKTOP_APP_ID: 'com.example.test', DSH_DESKTOP_AUTO_UPDATE_ENV: 'test',
-  DOWNLOAD_TEST_ORIGIN: 'https://updates.example.com', DOWNLOAD_TEST_RELEASE_ID: '0123456789abcdef0123456789abcdef',
+const environment = { DSH_DESKTOP_APP_ID: 'com.example.test',
   DSH_DESKTOP_WINDOWS_TOKEN_PIN: 'fixture-pin', DSH_DESKTOP_WINDOWS_SIGNATURE_CACHE_CONCURRENCY: '2' }
 
 function supervisor(failure?: string) {
@@ -64,8 +63,10 @@ it('requires one signing preflight before building, then records only the comple
     }
   }
   expect(writeFileSync).toHaveBeenCalledOnce()
-  const record = JSON.parse(vi.mocked(writeFileSync).mock.calls[0]![1] as string) as { publicUrl: string }
-  expect(record.publicUrl).toBe('https://updates.example.com/dsh-desk/0123456789abcdef0123456789abcdef/feeds/win-x64/')
+  const record = JSON.parse(vi.mocked(writeFileSync).mock.calls[0]![1] as string) as Record<string, unknown>
+  expect(record).toMatchObject({ schemaVersion: 1, target: 'win-x64' })
+  expect(record).not.toHaveProperty('publicUrl')
+  expect(record).not.toHaveProperty('environment')
 })
 
 it('initializes shared storage only after acquiring the preflight stage lock', async () => {

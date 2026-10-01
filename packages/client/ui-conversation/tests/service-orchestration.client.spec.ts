@@ -876,4 +876,3 @@ describe('InputHub queue steering (empty-draft accelerated Enter)', () => {
     await b.runtime.dispose()
   })
 })
-

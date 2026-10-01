@@ -14,8 +14,6 @@ import {
 
 const RELEASE_ENVIRONMENT = {
   DSH_DESKTOP_APP_ID: 'com.example.desktop',
-  DSH_DESKTOP_MANDATORY_UPDATE_TEST_ORIGIN: 'https://policy.example.com',
-  DSH_DESKTOP_MANDATORY_UPDATE_CONFIG: JSON.stringify({ allowedAuthOrigins: ['https://login.example.com'] }),
   DSH_DESKTOP_TARGET_PLATFORM: 'darwin',
   DSH_DESKTOP_TARGET_ARCH: 'arm64',
   DSH_DESKTOP_MACOS_SIGNING_IDENTITY: 'Example Company (TEAMID1234)',
@@ -23,7 +21,6 @@ const RELEASE_ENVIRONMENT = {
   APPLE_API_KEY: '/private/credentials/AuthKey_TEST123456.p8',
   APPLE_API_KEY_ID: 'TEST123456',
   APPLE_API_ISSUER: '11111111-2222-3333-4444-555555555555',
-  DOWNLOAD_TEST_ORIGIN: 'https://desktop-updates.example.com', DOWNLOAD_TEST_RELEASE_ID: '0123456789abcdef0123456789abcdef',
 }
 
 function portablePath(value: string): string {
@@ -78,11 +75,7 @@ describe('desktop macOS release signature', () => {
         sign: true,
         writeUpdateInfo: false,
       },
-      publish: [{
-        provider: 'generic',
-        url: 'https://desktop-updates.example.com/dsh-desk/0123456789abcdef0123456789abcdef/feeds/mac-arm64/',
-        channel: 'nightly',
-      }],
+      publish: null,
     })
     expect(typeof config.artifactBuildCompleted).toBe('function')
   })

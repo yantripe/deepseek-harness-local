@@ -88,7 +88,6 @@ const cache = dshCachePath('models')         // $DSH_HOME/cache/models, default 
 
 - [boot 包](../../boot/app-boot/README.zh.md)——在任何插件挂载之前解析主目录的启动器。
 - [shell 环境](../../shell/shell-env/README.zh.md)——`DSH_HOME` 如何到达模型 shell 调用。
-- [匿名用户 id](../../identity/anonymous-user-id/README.zh.md)——位于解析后主目录下的存储身份文件。
 
 -----
 

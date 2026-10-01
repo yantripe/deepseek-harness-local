@@ -34,8 +34,6 @@ harness 由 `packages/` 下的 npm 包组装而成，按能力系列分组：会
 | [`goal/`](goal/README.zh.md) | 同会话 goal 的持久化与生命周期 |
 | [`schedule/`](schedule/README.zh.md) | Host 拥有的定时后续操作 |
 | [`feedback/`](feedback/README.zh.md) | 人类反馈的采集与命令 |
-| [`telemetry/`](telemetry/README.zh.md) | 共享 Cordis OTel 上报通道 |
-| [`identity/`](identity/README.zh.md) | 共享匿名身份 |
 | [`llm/`](llm/README.zh.md) | LLM（大语言模型）能力系列：抽象服务 + 提供方适配器 |
 | [`subprocess/`](subprocess/README.zh.md) | 子进程能力系列：Service Definition + 本地进程树提供方 |
 | [`ssh/`](ssh/README.zh.md) | POSIX 远端连接及配套文件系统、子进程与沙箱提供方 |

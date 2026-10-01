@@ -12,7 +12,6 @@
     "bundle": "tsdown",
     "dev": "tsx scripts/dev.ts",
     "start": "tsx scripts/dev.ts --skip-build",
-    "test:updates:local": "pnpm run build && node scripts/test-local-updater.mjs",
     "prepare:runtime": "tsx scripts/prepare-runtime.ts",
     "render:tray-icon": "tsx scripts/render-tray-icon.ts",
     "prepare:primary-runtime": "tsx scripts/prepare-primary-runtime.ts",
@@ -32,19 +31,10 @@
     "package:mac:x64:dir": "tsx scripts/package-target.ts mac-x64 --dir",
     "package:win:x64": "tsx scripts/package-target.ts win-x64",
     "package:win:x64:unsigned": "tsx scripts/package-target.ts win-x64 --unsigned",
-    "package:win:x64:dir": "tsx scripts/package-target.ts win-x64 --dir",
-    "upload:mac:arm64": "tsx scripts/upload-target.ts mac-arm64",
-    "upload:mac:x64": "tsx scripts/upload-target.ts mac-x64",
-    "upload:win:x64": "tsx scripts/upload-target.ts win-x64",
-    "upload:latest:mac:arm64": "tsx scripts/upload-target.ts mac-arm64 --latest",
-    "upload:latest:mac:x64": "tsx scripts/upload-target.ts mac-x64 --latest",
-    "upload:latest:win:x64": "tsx scripts/upload-target.ts win-x64 --latest"
+    "package:win:x64:dir": "tsx scripts/package-target.ts win-x64 --dir"
   },
   "dependencies": {
-    "electron-updater": "^6.8.9",
     "semver": "^7.8.5",
-    "ws": "^8.21.0",
-    "@deepseek-ai/dsh-api-gateway": "workspace:*",
     "@deepseek-ai/cordis": "workspace:~"
   },
   "devDependencies": {
@@ -59,7 +49,6 @@
     "@types/node": "^22.20.0",
     "@types/semver": "^7.8.0",
     "app-builder-lib": "26.15.3",
-    "cos-nodejs-sdk-v5": "3.0.0",
     "electron": "^44.0.0",
     "electron-builder": "^26.15.3",
     "extract-zip": "^2.0.1",
@@ -68,15 +57,6 @@
     "pnpm": "11.7.0",
     "sharp": "^0.35.3",
     "typescript": "^6.0.3",
-    "@deepseek-ai/dsh-deepseek-account": "workspace:*",
-    "@types/ws": "^8.18.1",
-    "@deepseek-ai/dsh-client-ui-primitives": "workspace:*",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "@types/react": "~18.3.1",
-    "@types/react-dom": "~18.3.0",
-    "vite": "^6.0.0",
-    "@deepseek-ai/dsh-client-ui-theme": "workspace:*",
     "@deepseek-ai/dsh-client-shortcuts": "workspace:*",
     "@deepseek-ai/dsh-atomic-write": "workspace:*"
   }

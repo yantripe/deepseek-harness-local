@@ -36,4 +36,4 @@ Status: implemented
 
 ## 后果
 
-部署方配置 OTLP endpoint 并选择 `FEEDBACK_ONLY`，即可在新的显式反馈时释放完整权威日志前缀。`DISABLED` 是插件默认值（[`dsh-session-telemetry-otel` README](../../../../packages/session/session-telemetry-otel/README.zh.md)），且不构造上报流水线；删除配置项是静默退出方式，而禁用模式保留本地反馈警告。SDK 定时刷新和关闭只排空已授权批次，不捕获后续记录。未挂载规则的部署会导出每条已捕获事件的正文，包括紧凑 assistant stream 以及文件内容或命令输出中内嵌的凭据，因此跨信任边界的部署必须挂载 `session-telemetry/record` 监听器。脱敏后的正文可能与权威日志字节不同；日志仍是真源。丢失交接游标可能使后续已授权捕获产生重复，崩溃持久性则在上述 outbox 决定重新审议前继续不在范围内。
+部署方配置 OTLP endpoint 并选择 `FEEDBACK_ONLY`，即可在新的显式反馈时释放完整权威日志前缀。`DISABLED` 是插件默认值（`dsh-session-telemetry-otel` README），且不构造上报流水线；删除配置项是静默退出方式，而禁用模式保留本地反馈警告。SDK 定时刷新和关闭只排空已授权批次，不捕获后续记录。未挂载规则的部署会导出每条已捕获事件的正文，包括紧凑 assistant stream 以及文件内容或命令输出中内嵌的凭据，因此跨信任边界的部署必须挂载 `session-telemetry/record` 监听器。脱敏后的正文可能与权威日志字节不同；日志仍是真源。丢失交接游标可能使后续已授权捕获产生重复，崩溃持久性则在上述 outbox 决定重新审议前继续不在范围内。

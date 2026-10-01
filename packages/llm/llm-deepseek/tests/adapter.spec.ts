@@ -1,5 +1,4 @@
 /** HTTP lifecycle, routing and optional Cordis services under real composition. */
-import { installAccountTaskCancellation, type DeepSeekAccount } from '@deepseek-ai/dsh-deepseek-account'
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -26,7 +25,6 @@ import { DeepSeekAdapter } from '../src/adapter.ts'
 import { object } from '../src/replay.ts'
 import { DeepSeekFileStore } from '../src/file-store.ts'
 import * as Messages from '@deepseek-ai/dsh-llm-deepseek-api-key'
-import * as AccountProvider from '@deepseek-ai/dsh-llm-deepseek-account'
 import { adapter, assemble, chunks, MODEL, options, server, sse, textEvents, user, sourceModuleLoader } from './helpers.ts'
 
 const cleanup: (() => Promise<unknown>)[] = []
@@ -246,13 +244,13 @@ describe('direct Messages HTTP', () => {
 
   it('classifies a transport failure', async () => {
     vi.stubGlobal('fetch', async () => { throw new TypeError('network down') })
-    await expect(chunks(adapter().stream(options()))).rejects.toMatchObject({ code: 'TRANSPORT' })
+    await expect(chunks(adapter({ baseURL: 'https://provider.invalid' }).stream(options()))).rejects.toMatchObject({ code: 'TRANSPORT' })
   })
 
   it('preserves the transport failure when a provider error callback rejects', async () => {
     vi.stubGlobal('fetch', async () => new Response('Unauthorized', { status: 401 }))
     const llm = new DeepSeekAdapter({
-      options: () => Messages.resolveAdapterOptions({}),
+      options: () => Messages.resolveAdapterOptions({ baseURL: 'https://provider.invalid' }),
       resolveAuth: () => Promise.resolve({ headers: { 'x-api-key': 'fixture-key' },
         onRequestError: async () => { throw new Error('credential storage unavailable') },
       }),
@@ -262,7 +260,16 @@ describe('direct Messages HTTP', () => {
 
   it('rejects a successful response with no readable body', async () => {
     vi.stubGlobal('fetch', async () => new Response(null, { status: 200 }))
-    await expect(chunks(adapter().stream(options()))).rejects.toMatchObject({ code: 'EMPTY_RESPONSE' })
+    await expect(chunks(adapter({ baseURL: 'https://provider.invalid' }).stream(options()))).rejects.toMatchObject({ code: 'EMPTY_RESPONSE' })
+  })
+
+  it('rejects every request locally while no endpoint is configured', async () => {
+    const fetchImpl = vi.fn<typeof fetch>()
+    vi.stubGlobal('fetch', fetchImpl)
+    const resolveAuth = vi.fn(() => Promise.resolve({ headers: { 'x-api-key': 'test-key' } }))
+    await expect(chunks(adapter({}, { resolveAuth }).stream(options()))).rejects.toMatchObject({ code: 'MISSING_ENDPOINT' })
+    expect(resolveAuth).not.toHaveBeenCalled()
+    expect(fetchImpl).not.toHaveBeenCalled()
   })
 })
 
@@ -302,7 +309,7 @@ describe('Cordis provider composition', () => {
     await ctx.plugin(Loader)
     ctx.loader.builtins.include = Include
     const modules = new Map<string, unknown>([
-      ['@deepseek-ai/dsh-llm', LlmRuntime], ['@deepseek-ai/dsh-llm-deepseek-api-key', Messages], ['@deepseek-ai/dsh-llm-deepseek-account', AccountProvider],
+      ['@deepseek-ai/dsh-llm', LlmRuntime], ['@deepseek-ai/dsh-llm-deepseek-api-key', Messages],
       ['@deepseek-ai/dsh-credentials-local', LocalCredentials],
       ['@deepseek-ai/dsh-agent', AgentRegistry], ['@deepseek-ai/dsh-agent-loop', AgentLoop],
       ['@deepseek-ai/dsh-session', SessionStore], ['@deepseek-ai/dsh-session-projection', SessionProjectionRegistry],
@@ -322,80 +329,19 @@ describe('Cordis provider composition', () => {
     return { ctx, http }
   }
 
-  it.each(['deepseek-account', 'deepseek-official'].flatMap(provider => [
-    { provider, body: JSON.stringify({ error: { type: 'authentication_error', message: 'API key is invalid' } }) },
-    { provider, body: JSON.stringify({ error: { message: 'Authentication Fails (invalid dsh token)' } }) },
-    { provider, body: 'Unauthorized' },
-    { provider, body: '' },
-  ]))('handles $provider HTTP 401 independently of the response body ($body)', async ({ provider, body }) => {
+  it.each([
+    { body: JSON.stringify({ error: { type: 'authentication_error', message: 'API key is invalid' } }) },
+    { body: JSON.stringify({ error: { message: 'Authentication Fails (invalid dsh token)' } }) },
+    { body: 'Unauthorized' },
+    { body: '' },
+  ])('handles HTTP 401 independently of the response body ($body)', async ({ body }) => {
     const { ctx } = await boot((response) => {
       response.writeHead(401, { 'content-type': 'application/json' })
       response.end(body)
     })
-    const rejectToken = vi.fn(async (_token: string) => {})
-    ctx.provide('deepseekAccount', { resolveToken: async (_url: string): Promise<string | undefined> => 'fixture-token',
-      rejectToken: (token: string): Promise<void> => rejectToken(token) } as DeepSeekAccount)
-    expect((await chunks(ctx.llm.stream(options({ provider })))).at(-1)).toMatchObject({
-      type: 'finish', reason: { kind: 'error', failure: { code: provider === 'deepseek-account' ? 'ACCOUNT_TOKEN_INVALID' : 'AUTH' } },
-    })
-    expect(rejectToken.mock.calls).toEqual(provider === 'deepseek-account' ? [['fixture-token']] : [])
-  })
-
-  it('reports the request token when credentials change before a 401 response', async () => {
-    let token = 'first-login'
-    const { ctx } = await boot((response) => {
-      token = 'replacement-login'
-      response.writeHead(401)
-      response.end('Unauthorized')
-    })
-    const rejectToken = vi.fn(async (_token: string) => {})
-    ctx.provide('deepseekAccount', { resolveToken: async (_url: string): Promise<string | undefined> => token,
-      rejectToken: (value: string): Promise<void> => rejectToken(value) } as DeepSeekAccount)
-    await chunks(ctx.llm.stream(options({ provider: 'deepseek-account' })))
-    expect(token).toBe('replacement-login')
-    expect(rejectToken).toHaveBeenCalledExactlyOnceWith('first-login')
-  })
-
-  it('finishes the active account turn when rejected credentials publish sign-out', async () => {
-    const { ctx } = await boot((response) => {
-      response.writeHead(401)
-      response.end(JSON.stringify({ error: { message: 'Authentication Fails (invalid dsh token)' } }))
-    })
-    ctx.provide('deepseekAccount', { resolveToken: async (_url: string): Promise<string | undefined> => 'fixture-token',
-      rejectToken: async (_token: string): Promise<void> => { ctx.emit('deepseek-account/signed-out') } } as DeepSeekAccount)
-    installAccountTaskCancellation(ctx)
-    const agent = await ctx.agentLoop.create(SessionId('inference-account-expiry'), { provider: 'deepseek-account', model: MODEL })
-    agent.followup(user('hello'))
-    await agent.whenIdle()
-    expect(agent.session.snapshotEvents().at(-1)?.data).toMatchObject({
-      reason: { kind: 'aborted', reason: { kind: 'hook', reason: 'deepseek-account/signed-out' } },
-    })
-  })
-
-  it('preserves the inference error when rejected credential removal fails', async () => {
-    const { ctx } = await boot((response) => {
-      response.writeHead(401)
-      response.end(JSON.stringify({ error: { message: 'Authentication Fails (invalid dsh token)' } }))
-    })
-    ctx.provide('deepseekAccount', { resolveToken: async (_url: string): Promise<string | undefined> => 'fixture-token',
-      rejectToken: async (_token: string): Promise<void> => { throw new Error('credential storage unavailable') } } as DeepSeekAccount)
-    expect((await chunks(ctx.llm.stream(options({ provider: 'deepseek-account' })))).at(-1)).toMatchObject({
-      type: 'finish', reason: { kind: 'error', failure: { code: 'ACCOUNT_TOKEN_INVALID' } },
-    })
-  })
-
-  it('does not remove account credentials for HTTP 403', async () => {
-    const { ctx } = await boot((response) => {
-      response.writeHead(403)
-      response.end(JSON.stringify({ error: { type: 'authentication_error', message: 'API key is invalid' } }))
-    })
-    const rejectToken = vi.fn(async (_token: string) => {})
-    ctx.provide('deepseekAccount', { resolveToken: async (_url: string): Promise<string | undefined> => 'fixture-token',
-      rejectToken: (token: string): Promise<void> => rejectToken(token) } as DeepSeekAccount)
-    expect((await chunks(ctx.llm.stream(options({ provider: 'deepseek-account' })))).at(-1)).toMatchObject({
+    expect((await chunks(ctx.llm.stream(options()))).at(-1)).toMatchObject({
       type: 'finish', reason: { kind: 'error', failure: { code: 'AUTH' } },
     })
-    expect(rejectToken).not.toHaveBeenCalled()
   })
 
   it.each([
@@ -527,7 +473,7 @@ describe('Cordis provider composition', () => {
 
   it('loads one provider from YAML, rotates settings and credentials, then removes disposed registrations', async () => {
     const { ctx, http } = await boot()
-    expect(ctx.llm.listProviders().map(provider => provider.id)).toEqual(['deepseek-official', 'deepseek-account'])
+    expect(ctx.llm.listProviders().map(provider => provider.id)).toEqual(['deepseek-official'])
     expect((await assemble(ctx.llm.stream(options()))).assembler.finish.kind).toBe('stop')
     expect(http.requests[0]?.headers['x-api-key']).toBe('stored-key')
     const second = await endpoint()
@@ -570,30 +516,4 @@ describe('Cordis provider composition', () => {
 
 it('rejects invalid catalog context windows at the options resolver', () => {
   expect(() => Messages.resolveAdapterOptions({ models: [{ id: 'invalid-window', contextWindow: 0 }] })).toThrow('contextWindow must be a positive integer')
-})
-
-
-it.each([
-  ['https://api.deepseek.com', 'account-token'],
-  ['https://custom.example.test', 'ambient-key'],
-] as const)('selects account or API-key credentials from the actual endpoint %s', async (baseURL, expected) => {
-  vi.stubEnv('DEEPSEEK_API_KEY', 'ambient-key')
-  const { ctx } = await context()
-  // This consumer uses only resolveToken; the real provider owns origin validation in its own suite.
-  ctx.provide('deepseekAccount', {
-    resolveToken: (url: string) => Promise.resolve(url === 'https://api.deepseek.com' ? 'account-token' : undefined),
-  } as DeepSeekAccount)
-  await ctx.plugin(LlmRuntime)
-  await ctx.plugin(expected === 'account-token' ? AccountProvider : Messages, { baseURL })
-  const request = vi.fn<typeof fetch>((_input, init) => {
-    const headers = new Headers(init?.headers)
-    expect(headers.has('authorization')).toBe(false)
-    expect(headers.get('x-api-key')).toBe(expected === 'account-token' ? null : expected)
-    expect(headers.get('x-dsh-auth-token')).toBe(expected === 'account-token' ? expected : null)
-    expect(init?.redirect).toBe('error')
-    return Promise.resolve(new Response(sse(textEvents), { status: 200 }))
-  })
-  vi.stubGlobal('fetch', request)
-  await assemble(ctx.llm.stream(options({ provider: expected === 'account-token' ? 'deepseek-account' : 'deepseek-official' })))
-  expect(request).toHaveBeenCalledOnce()
 })

@@ -45,7 +45,6 @@ const NO_MODEL_EXPERIENCE_SECTION: Readonly<Record<string, string>> = {
  * blocks. A package moves on or off this list with its context behavior.
  */
 const SENTENCE_MODEL_EXPERIENCE: Readonly<Record<string, SentenceContract>> = {
-  'packages/client/product-analytics': { kind: 'none', reason: 'Desktop analytics observes selected interactions without contributing model context or Session events.' },
   'packages/experimental/speech-to-text': { kind: 'none', reason: 'Routes transient recognition without adding model requests or Session events.' },
   'packages/experimental/api-speech-to-text': { kind: 'none', reason: 'Transports audio and preparation state; ordinary user submission owns model-visible text.' },
   'packages/experimental/speech-to-text-sensevoice': { kind: 'none', reason: 'Local recognition returns transient text without modifying model context.' },
@@ -62,10 +61,6 @@ const SENTENCE_MODEL_EXPERIENCE: Readonly<Record<string, SentenceContract>> = {
   'packages/computer-use/computer-use': { kind: 'none', reason: 'The registry only reserves provider names; providers own all model-facing tools and guidance.' },
   'packages/document/office-to-pdf': { kind: 'none', reason: 'The provider returns PDF bytes without constructing model input.' },
 
-  'packages/credentials/deepseek-account': { kind: 'none', reason: 'Account authorization registers no model context or tools; credentials affect HTTP authentication only.' },
-  'packages/credentials/deepseek-account-platform': { kind: 'none', reason: 'Account authorization registers no model context or tools; credentials affect HTTP authentication only.' },
-  'packages/api/account-controller': { kind: 'none', reason: 'Account authorization registers no model context or tools; credentials affect HTTP authentication only.' },
-  'packages/client/ui-settings-account': { kind: 'none', reason: 'Account authorization registers no model context or tools; credentials affect HTTP authentication only.' },
 
   'packages/attachment/attachment': { kind: 'indirect', reason: 'The storage seam delegates model request rendering to provider adapters.' },
   'packages/attachment/attachment-local': { kind: 'indirect', reason: 'The local backend delegates model request rendering to provider adapters.' },
@@ -87,7 +82,6 @@ const SENTENCE_MODEL_EXPERIENCE: Readonly<Record<string, SentenceContract>> = {
   'packages/util/lazy-require': { kind: 'none', reason: 'Host module-loading primitive; registers nothing model-facing.' },
   'packages/util/time': { kind: 'indirect', reason: 'Pure zone validation; the consumer that records a canonical zone owns the model-visible line derived from it.' },
   'packages/core/agent-default-model': { kind: 'indirect', reason: 'The service supplies a ModelSelection; request assembly and adapters own the model-visible request.' },
-  'packages/llm/deepseek-llm-api-extensions': { kind: 'indirect', reason: 'The registry contributes model-hidden provider fields; dsh-llm-deepseek owns their wire placement.' },
   'packages/preset/agent-preset': { kind: 'indirect', reason: 'The declaration selects plugins that own model-visible contributions.' },
   'packages/typert/registry': { kind: 'none', reason: 'Runtime type registry; consumers (cordis_inspect, wire faces, gates) own any model-visible projection of registry contents.' },
   'packages/typert/loader': { kind: 'none', reason: 'Loader integration only registers generated artifacts; consumers own any model-visible projection.' },
@@ -133,7 +127,6 @@ const SENTENCE_MODEL_EXPERIENCE: Readonly<Record<string, SentenceContract>> = {
   'packages/client/ui-settings-shell': { kind: 'none', reason: 'Browser-side settings surface; registers no model surface.' },
   'packages/client/ui-settings-agent-loop': { kind: 'none', reason: 'Browser-side settings surface; registers no model surface.' },
   'packages/client/ui-settings-subagent': { kind: 'none', reason: 'Browser-side settings surface; registers no model surface.' },
-  'packages/client/ui-settings-web-search': { kind: 'none', reason: 'Browser-side settings surface; registers no model surface.' },
   'packages/client/ui-plan': { kind: 'indirect', reason: 'The chip dispatches /plan off; dsh-plan-mode owns the model-visible policy, exit tool, and logged state.' },
   'packages/client/ui-user-questions': { kind: 'indirect', reason: 'The package mounts dsh-tool-ask-user; that tool owns the model-visible schema and answer rendering.' },
   'packages/client/ui-trajectory': { kind: 'none', reason: 'Browser-side UI plugin layer; registers nothing model-facing.' },
@@ -190,8 +183,6 @@ const SENTENCE_MODEL_EXPERIENCE: Readonly<Record<string, SentenceContract>> = {
   'packages/credentials/credentials-local': { kind: 'indirect', reason: 'The file/environment provider stores credential values; consumers of ctx.credentials own any model-facing behavior.' },
   'packages/credentials/authorization': { kind: 'none', reason: 'A configuration-time conversation with a human; no flow, notice, or prompt reaches a model request.' },
   'packages/util/atomic-write': { kind: 'none', reason: 'Pure filesystem write primitive; registers nothing model-facing.' },
-  'packages/session/session-telemetry': { kind: 'none', reason: 'The seam observes the session stream and hands redacted copies outward; it registers nothing model-facing.' },
-  'packages/identity/anonymous-user-id': { kind: 'none', reason: 'The shared identifier reaches DeepSeek only as model-hidden HTTP metadata; it registers nothing model-facing.' },
   'packages/skill/skill': { kind: 'indirect', reason: 'The provider registry delegates model rendering to dsh-tool-skill.' },
   'packages/skill/skill-badge': { kind: 'indirect', reason: 'The bundled provider delegates model rendering to dsh-tool-skill.' },
   'packages/skill/skill-office': { kind: 'indirect', reason: 'The bundled Office provider delegates model rendering to dsh-tool-skill.' },

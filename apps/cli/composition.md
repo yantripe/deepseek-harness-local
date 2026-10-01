@@ -18,12 +18,8 @@ flowchart LR
   cfg --> plugin_dsh_base_hmr
   plugin_dsh_base_llm["llm<br/>@deepseek-ai/dsh-llm"]
   cfg --> plugin_dsh_base_llm
-  plugin_dsh_base_deepseek_llm_api_extensions["deepseek-llm-api-extensions<br/>@deepseek-ai/dsh-deepseek-llm-api-extensions"]
-  cfg --> plugin_dsh_base_deepseek_llm_api_extensions
   plugin_dsh_base_session["session<br/>@deepseek-ai/dsh-session"]
   cfg --> plugin_dsh_base_session
-  plugin_dsh_base_session_log_deepseek["session-log-deepseek<br/>@deepseek-ai/dsh-session-log-deepseek"]
-  cfg --> plugin_dsh_base_session_log_deepseek
   plugin_dsh_base_typert["typert<br/>@deepseek-ai/dsh-typert-registry"]
   cfg --> plugin_dsh_base_typert
   plugin_dsh_base_typert_loader["typert-loader<br/>@deepseek-ai/dsh-typert-loader"]
@@ -38,8 +34,6 @@ flowchart LR
   cfg --> plugin_dsh_base_user_questions
   plugin_dsh_base_agent["agent<br/>@deepseek-ai/dsh-agent"]
   cfg --> plugin_dsh_base_agent
-  plugin_dsh_base_plugin_package_inventory_deepseek["plugin-package-inventory-deepseek<br/>@deepseek-ai/dsh-plugin-package-inventory-deepseek"]
-  cfg --> plugin_dsh_base_plugin_package_inventory_deepseek
   plugin_dsh_base_agent_default_model["agent-default-model<br/>@deepseek-ai/dsh-agent-default-model"]
   cfg --> plugin_dsh_base_agent_default_model
   plugin_dsh_base_jobs["jobs<br/>@deepseek-ai/dsh-jobs-local"]
@@ -52,8 +46,6 @@ flowchart LR
   cfg --> plugin_dsh_base_settings
   plugin_dsh_base_authorization["authorization<br/>@deepseek-ai/dsh-authorization"]
   cfg --> plugin_dsh_base_authorization
-  plugin_dsh_base_deepseek_account["deepseek-account<br/>@deepseek-ai/dsh-deepseek-account-platform"]
-  cfg --> plugin_dsh_base_deepseek_account
   plugin_dsh_base_credentials["credentials<br/>@deepseek-ai/dsh-credentials-local"]
   cfg --> plugin_dsh_base_credentials
   plugin_dsh_base_llm_pi_ai["llm-pi-ai<br/>@deepseek-ai/dsh-llm-pi-ai"]
@@ -74,10 +66,6 @@ flowchart LR
   cfg --> plugin_dsh_base_storage_domain
   plugin_dsh_base_session_projection_cache["session-projection-cache<br/>@deepseek-ai/dsh-session-projection-cache"]
   cfg --> plugin_dsh_base_session_projection_cache
-  plugin_dsh_base_otel["otel<br/>@deepseek-ai/dsh-otel"]
-  cfg --> plugin_dsh_base_otel
-  plugin_dsh_base_session_telemetry_otel["session-telemetry-otel<br/>@deepseek-ai/dsh-session-telemetry-otel"]
-  cfg --> plugin_dsh_base_session_telemetry_otel
   plugin_dsh_base_subprocess["subprocess<br/>@deepseek-ai/dsh-subprocess-local"]
   cfg --> plugin_dsh_base_subprocess
   plugin_dsh_base_sandbox["sandbox<br/>@deepseek-ai/dsh-sandbox-local"]
@@ -176,8 +164,6 @@ flowchart LR
   cfg --> plugin_dsh_base_repeat_tool_reminder
   plugin_dsh_base_web["web<br/>@deepseek-ai/dsh-web"]
   cfg --> plugin_dsh_base_web
-  plugin_dsh_base_web_search_deepseek["web-search-deepseek<br/>@deepseek-ai/dsh-web-search-deepseek"]
-  cfg --> plugin_dsh_base_web_search_deepseek
   plugin_dsh_base_web_fetch_http["web-fetch-http<br/>@deepseek-ai/dsh-web-fetch-http"]
   cfg --> plugin_dsh_base_web_fetch_http
   plugin_dsh_base_tool_web["tool-web<br/>@deepseek-ai/dsh-tool-web"]
@@ -194,8 +180,6 @@ flowchart LR
   cfg --> plugin_dsh_base_fs_sandbox
   plugin_dsh_base_llm_deepseek["llm-deepseek<br/>@deepseek-ai/dsh-llm-deepseek-api-key"]
   cfg --> plugin_dsh_base_llm_deepseek
-  plugin_dsh_base_llm_deepseek_account["llm-deepseek-account<br/>@deepseek-ai/dsh-llm-deepseek-account"]
-  cfg --> plugin_dsh_base_llm_deepseek_account
 ```
 
 | Plugin id | Package / module |
@@ -205,9 +189,7 @@ flowchart LR
 | `timer` | `@deepseek-ai/cordis-plugin-timer` |
 | `hmr` | `@deepseek-ai/dsh-hmr` |
 | `llm` | `@deepseek-ai/dsh-llm` |
-| `deepseek-llm-api-extensions` | `@deepseek-ai/dsh-deepseek-llm-api-extensions` |
 | `session` | `@deepseek-ai/dsh-session` |
-| `session-log-deepseek` | `@deepseek-ai/dsh-session-log-deepseek` |
 | `typert` | `@deepseek-ai/dsh-typert-registry` |
 | `typert-loader` | `@deepseek-ai/dsh-typert-loader` |
 | `typert-gateway` | `@deepseek-ai/dsh-api-gateway` |
@@ -215,14 +197,12 @@ flowchart LR
 | `session-title-llm` | `@deepseek-ai/dsh-session-title-first-prompt-llm` |
 | `user-questions` | `@deepseek-ai/dsh-user-questions` |
 | `agent` | `@deepseek-ai/dsh-agent` |
-| `plugin-package-inventory-deepseek` | `@deepseek-ai/dsh-plugin-package-inventory-deepseek` |
 | `agent-default-model` | `@deepseek-ai/dsh-agent-default-model` |
 | `jobs` | `@deepseek-ai/dsh-jobs-local` |
 | `llm-retry` | `@deepseek-ai/dsh-llm-retry` |
 | `config-editor` | `@deepseek-ai/dsh-config-editor` |
 | `settings` | `@deepseek-ai/dsh-settings` |
 | `authorization` | `@deepseek-ai/dsh-authorization` |
-| `deepseek-account` | `@deepseek-ai/dsh-deepseek-account-platform` |
 | `credentials` | `@deepseek-ai/dsh-credentials-local` |
 | `llm-pi-ai` | `@deepseek-ai/dsh-llm-pi-ai` |
 | `session-persistence-jsonl` | `@deepseek-ai/dsh-session-persistence-jsonl` |
@@ -233,8 +213,6 @@ flowchart LR
 | `storage-json` | `@deepseek-ai/dsh-storage-json` |
 | `storage-domain` | `@deepseek-ai/dsh-storage-domain` |
 | `session-projection-cache` | `@deepseek-ai/dsh-session-projection-cache` |
-| `otel` | `@deepseek-ai/dsh-otel` |
-| `session-telemetry-otel` | `@deepseek-ai/dsh-session-telemetry-otel` |
 | `subprocess` | `@deepseek-ai/dsh-subprocess-local` |
 | `sandbox` | `@deepseek-ai/dsh-sandbox-local` |
 | `sandbox-policy` | `@deepseek-ai/dsh-sandbox-policy` |
@@ -284,7 +262,6 @@ flowchart LR
 | `tool-ralph` | `@deepseek-ai/dsh-tool-ralph` |
 | `repeat-tool-reminder` | `@deepseek-ai/dsh-repeat-tool-reminder` |
 | `web` | `@deepseek-ai/dsh-web` |
-| `web-search-deepseek` | `@deepseek-ai/dsh-web-search-deepseek` |
 | `web-fetch-http` | `@deepseek-ai/dsh-web-fetch-http` |
 | `tool-web` | `@deepseek-ai/dsh-tool-web` |
 | `mcp-resources` | `@deepseek-ai/dsh-mcp-resources` |
@@ -293,7 +270,6 @@ flowchart LR
 | `agent-loop` | `@deepseek-ai/dsh-agent-loop` |
 | `fs-sandbox` | `@deepseek-ai/dsh-fs-sandbox` |
 | `llm-deepseek` | `@deepseek-ai/dsh-llm-deepseek-api-key` |
-| `llm-deepseek-account` | `@deepseek-ai/dsh-llm-deepseek-account` |
 
 Source config: [`packages/bundle/base/cordis.patch.yml`](../../packages/bundle/base/cordis.patch.yml).
 

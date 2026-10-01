@@ -34,4 +34,4 @@ Tool lists and logical update events are capability-independent; only outgoing d
 
 The authored [headless prompt/tool scenario](../../../../snapshots/session/dynamic-tool-prompt-updates/snapshot.yml) pins an appended prompt beside a deferred tool addition and verifies that the first request's messages stay unchanged. It shares the stable-prompt scenario's tool lifecycle and schema expectations.
 
-The [real DeepSeek SDK test](../../../../apps/cli/tests/profiles/sdk/dynamic-tool-cache.e2e.ts) measures the first request after a native tool addition with both unchanged and simultaneously updated instructions. Unique user history prevents a shared system-prompt cache hit from satisfying the preceding-input assertion. Removal checks tool availability without requiring cache retention; each case disables retries.
+The real DeepSeek SDK test measures the first request after a native tool addition with both unchanged and simultaneously updated instructions. Unique user history prevents a shared system-prompt cache hit from satisfying the preceding-input assertion. Removal checks tool availability without requiring cache retention; each case disables retries.

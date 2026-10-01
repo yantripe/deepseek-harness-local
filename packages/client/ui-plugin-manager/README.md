@@ -7,8 +7,6 @@ kind: "package-reference"
 
 English | [中文](README.zh.md)
 
-Desktop product events use the optional [product analytics service](../product-analytics/README.md); ordinary Web interactions are excluded.
-
 ## Summary
 
 Use the **Plugins** entry in the Web sidebar to manage the profile's installed bundles and the official bundles the installation ships switched off. Switch bundles and their rows on and off, install a bundle after the Host has read what the spec names, watch pnpm's output, stop a run, and enable what it added. Uninstalling asks for confirmation. A plugin that registers a configuration page is edited here, on its own page; Settings keeps the read-only inventory.
@@ -57,7 +55,7 @@ A row's switch on the bundle's page calls `pluginManager.setPluginEnabled`, whic
 
 ### Configuration pages
 
-A plugin that carries its own configuration renders it on this page rather than in Settings, through three slots the page declares: `plugins.item` (list) for an official plugin, listed in the Official group by its `label`; `plugins.bundle.config` (keyed by the bundle's package name) for a bundle's own configuration, shown on the bundle's page between its description and its rows; and `plugins.row.config` (keyed by `<package name>#<row id>`) for one row's configuration, which gives that row a **Configure** control opening the row's page. The page renders `view: 'page'` for forms with their own save controls. Official plugin cards also render `view: 'summary'` under the title; a row's detail page uses that view only when its package description is absent. Only a save writes: the page draws the title, icon, and crumb, and the entry's form drops its staged edits when the page is left. The four host-plane pages the installation ships — the shell executor, the agent loop, Subagent, and the DeepSeek search provider — come from one companion package each, [ui-settings-shell](../ui-settings-shell/README.md), [ui-settings-agent-loop](../ui-settings-agent-loop/README.md), [ui-settings-subagent](../ui-settings-subagent/README.md), and [ui-settings-web-search](../ui-settings-web-search/README.md), registered while the Host serves their namespaces. A bundle's browser half registers the same way:
+A plugin that carries its own configuration renders it on this page rather than in Settings, through three slots the page declares: `plugins.item` (list) for an official plugin, listed in the Official group by its `label`; `plugins.bundle.config` (keyed by the bundle's package name) for a bundle's own configuration, shown on the bundle's page between its description and its rows; and `plugins.row.config` (keyed by `<package name>#<row id>`) for one row's configuration, which gives that row a **Configure** control opening the row's page. The page renders `view: 'page'` for forms with their own save controls. Official plugin cards also render `view: 'summary'` under the title; a row's detail page uses that view only when its package description is absent. Only a save writes: the page draws the title, icon, and crumb, and the entry's form drops its staged edits when the page is left. The three host-plane pages the installation ships — the shell executor, the agent loop, and Subagent — come from one companion package each, [ui-settings-shell](../ui-settings-shell/README.md), [ui-settings-agent-loop](../ui-settings-agent-loop/README.md), and [ui-settings-subagent](../ui-settings-subagent/README.md), registered while the Host serves their namespaces. A bundle's browser half registers the same way:
 
 ```tsx ignore-check
 ctx.slots.inject('plugins.row.config', () => ctx.slots.register({
@@ -123,7 +121,7 @@ These pages cover the sidebar, the Remote calls, and the Host-side manager.
 - [ui-sidebar](../ui-sidebar/README.md) — the panel list the Plugins entry registers into; [ui-layout](../ui-layout/README.md) — the main slot the page occupies.
 - [api-remotes](../../api/remotes/README.md) — the Remote BFF surface behind `pluginManager.*` and `pluginInventory.*`.
 - [plugin-manager](../../boot/plugin-manager/README.md) — the Host-side manager this page drives.
-- [ui-settings-shell](../ui-settings-shell/README.md), [ui-settings-agent-loop](../ui-settings-agent-loop/README.md), [ui-settings-subagent](../ui-settings-subagent/README.md), [ui-settings-web-search](../ui-settings-web-search/README.md) — the official configuration pages that register into this page's `plugins.item` slot.
+- [ui-settings-shell](../ui-settings-shell/README.md), [ui-settings-agent-loop](../ui-settings-agent-loop/README.md), [ui-settings-subagent](../ui-settings-subagent/README.md) — the official configuration pages that register into this page's `plugins.item` slot.
 
 -----
 

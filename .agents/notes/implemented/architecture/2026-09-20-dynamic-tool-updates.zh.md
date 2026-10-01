@@ -34,4 +34,4 @@ DeepSeek 把投影后的更新转换为 system 角色的 `tool_addition` 和 `to
 
 手写的[无界面提示词／工具场景](../../../../snapshots/session/dynamic-tool-prompt-updates/snapshot.yml)钉住追加提示词与延迟工具添加同时发生的行为，并验证首次请求的消息保持不变。它复用稳定提示词场景的工具生命周期和 schema 期望值。
 
-[真实 DeepSeek SDK 测试](../../../../apps/cli/tests/profiles/sdk/dynamic-tool-cache.e2e.ts) 分别在指令不变和指令同时更新时测量原生工具新增后的首次请求。独有的用户历史确保仅命中共享系统提示词缓存无法满足前序输入断言。移除场景检查工具可用性，不要求保留缓存；每个用例均禁用重试。
+真实 DeepSeek SDK 测试 分别在指令不变和指令同时更新时测量原生工具新增后的首次请求。独有的用户历史确保仅命中共享系统提示词缓存无法满足前序输入断言。移除场景检查工具可用性，不要求保留缓存；每个用例均禁用重试。

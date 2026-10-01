@@ -1555,7 +1555,8 @@ describe('DeepSeekAdapter against a mock server', () => {
 
 describe('plugin registration and config', () => {
   it('resolves the Messages endpoint without rewriting overrides', () => {
-    expect(resolveAdapterOptions({}).baseURL).toBe('https://api.deepseek.com/anthropic')
+    // No vendor default: an unconfigured route resolves to no endpoint.
+    expect(resolveAdapterOptions({}).baseURL).toBe('')
     for (const baseURL of ['https://example.com', 'https://example.com/custom']) {
       expect(resolveAdapterOptions({ baseURL }).baseURL).toBe(baseURL)
     }

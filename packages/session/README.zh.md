@@ -37,7 +37,6 @@ session 组让对话持久保存，恢复已发布的日志格式，并使已提
 | [`session-persistence/`](session-persistence/README.zh.md) | 定义持久会话存储服务，以及每个后端组合的共享写入协调机制 | `ctx.sessionPersistence` |
 | [`session-persistence-jsonl/`](session-persistence-jsonl/README.zh.md) | 随产品交付的后端：逐 Session 使用不可变规范 generation 文件名并排他发布后继；可选 Zstandard 压缩 | 注册到 `ctx.sessionPersistence` |
 | [`session-checkpoint-policy/`](session-checkpoint-policy/README.zh.md) | 让模型请求、顶层工具副作用与已完成步骤在下一步动作前持久化 | 包装 `ctx.llm` 与 `ctx.tools` |
-| [`session-log-deepseek/`](session-log-deepseek/README.zh.md) | 把增量规范日志作为可选的官方 DeepSeek 请求元数据上传 | 贡献 `dsh_session_log` |
 
 ### 投影
 
@@ -61,8 +60,6 @@ session 组让对话持久保存，恢复已发布的日志格式，并使已提
 
 | 包 | 职责 | ctx key |
 |---|---|---|
-| [`session-telemetry/`](session-telemetry/README.zh.md) | 捕获会话活动并把记录交给配置的上报后端 | `ctx.sessionTelemetry` |
-| [`session-telemetry-otel/`](session-telemetry-otel/README.zh.md) | 通过 OpenTelemetry 日志以 `FEEDBACK_ONLY` 或 `DISABLED` 模式投递遥测 | 注册到 `ctx.sessionTelemetry` |
 
 同一时间只允许一个标题提供方注册；未注册时，标题服务保留其确定性回退。下面的子系统页面是各家族后端无关的参考资料。
 
@@ -74,7 +71,6 @@ session 组让对话持久保存，恢复已发布的日志格式，并使已提
 - [会话持久化子系统](../../docs/subsystems/persistence.zh.md)——后端无关的服务语义、flush 检查点与崩溃恢复。
 - [会话投影子系统](../../docs/subsystems/session-projection.zh.md)——投影单元约定与驱动语义。
 - [会话标题子系统](../../docs/subsystems/session-title.zh.md)——标题资格、回退与提供方流程。
-- [会话遥测子系统](../../docs/subsystems/session-telemetry.zh.md)——捕获、脱敏与投递模式。
 - [会话子系统](../../docs/subsystems/session.zh.md)——本组每个包持久化或派生的实时事件日志。
 
 <a id="dev-note"></a>

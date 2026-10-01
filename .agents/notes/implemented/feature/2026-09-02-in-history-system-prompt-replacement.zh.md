@@ -94,4 +94,3 @@ Chat 与 Trajectory 通过纯操作 `uiConversation.inspectSystemPrompt` 解释�
 - `packages/llm/token-meter/tests/context-breakdown-projection.spec.ts` 钉住最新与中间提示词移除、精确启发式总量、头部改写后的 surface 顺序、额外来源引用、休眠空节点与回退清空、不可变转换、紧凑保留检查点、延迟注册、重放和版本失效。
 - `packages/client/ui-conversation`、`ui-chat` 与 `ui-trajectory` 的客户端测试钉住更新卡片、同一步骤 header 的去重、更新之后不存在系统变更，以及合成的轨迹 header。
 - 无密钥的手写快照 `snapshots/session/system-prompt-in-history/` 在回放路由上声明该能力，通过 fixture 片段在第一次工具调用之后改变提示词，钉住追加的 `system/message`、未被触及的第 0 号节点、唯一一条 `request/header` 以及 `request/context` 中的模式。
-- `packages/llm/llm-deepseek/tests/adapter.e2e.ts` 针对 `DEEPSEEK_IN_HISTORY_MODEL` 指定的模型运行两个步骤并夹带一次提示词变更，断言回复遵循追加的提示词，并断言追加后的请求比同一对话在重写最前提示词时读取更多的缓存 token；该变量未设置时跳过。

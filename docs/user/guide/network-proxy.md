@@ -67,7 +67,6 @@ Not every request DSH makes goes through the proxy:
 
 - **Anything on this machine.** Loopback is always direct: `localhost`, the whole `127.0.0.0/8` range, `::1`, and `0.0.0.0`. A proxy cannot usefully reach a service that only listens locally.
 - **Code the model writes.** Workflow workers and Node ptc-runtime processes receive no proxy settings, so model-authored scripts cannot read a proxy URL that may carry a password. Direct requests must configure any required proxy themselves and remain subject to the execution sandbox.
-- **Usage telemetry.** The OTLP exporter uses Node's own HTTP client rather than the one a proxy configures, so telemetry connects directly and simply fails where direct egress is blocked. Nothing you do in DSH depends on it. Set `DSH_TELEMETRY_MODE=DISABLED` to turn it off entirely.
 - **`web_fetch` to a literal private address.** A URL naming an address like `http://10.0.0.5/` is refused rather than handed to the proxy, the same refusal it gets with no proxy configured.
 
 ## Check that it worked

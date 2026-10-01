@@ -9,7 +9,7 @@ kind: "package-reference"
 
 ## 概述
 
-提供共享的 DeepSeek Messages 传输、请求配置和模型能力。组合 [API key](../llm-deepseek-api-key/README.zh.md) 或[账号](../llm-deepseek-account/README.zh.md)插件以提供鉴权、模型发现与 provider 注册。有效的设置更改在后续请求生效，进行中的请求保留原配置。本包可与 [pi-ai 适配器](../llm-pi-ai/README.zh.md)并用。
+提供共享的 DeepSeek Messages 传输、请求配置和模型能力。组合 [API key](../llm-deepseek-api-key/README.zh.md) 插件以提供鉴权、模型发现与 provider 注册。有效的设置更改在后续请求生效，进行中的请求保留原配置。本包可与 [pi-ai 适配器](../llm-pi-ai/README.zh.md)并用。
 
 `resolveAuth(connection)` 返回提供方持有的鉴权请求头，以及绑定本次请求凭据的可选失败回调。Messages 和 Files 直接使用这些请求头，不判断凭据类型。上传复用按端点和鉴权请求头的哈希隔离，不持久化原始凭据。
 
@@ -85,7 +85,7 @@ Messages 以内容块发送文本、思考、工具调用和工具结果，以 `
 
 ### 账号凭据
 
-`deepseek-official` 仅解析配置的 API Key 引用。`deepseek-account` 仅解析[账号提供者](../../credentials/deepseek-account-platform/README.zh.md)保存的授权，其允许的 `inferenceOrigin` 默认为 `https://api.deepseek.com`。两条路由均不回退到另一凭证。退出登录删除账号授权，保留 API Key。
+`deepseek-official` 仅解析配置的 API Key 引用；其端点来自 `baseURL` 或 `DEEPSEEK_BASE_URL`，两者都未设置时请求在本地失败。
 
 Messages 和 Files 请求通过 `x-dsh-auth-token` 发送账号 token，不加 Bearer 前缀；API Key 使用 `x-api-key`。两种凭据模式均拒绝重定向。账号 provider 负责 HTTP 401 分类和凭据失效处理；传输层将错误交给其回调。
 
@@ -107,15 +107,13 @@ Files 模式通过 `maxRequestFilesBytes` 与 `maxImagesPerRequest` 限制保留
 
 ### 提供方专用请求字段
 
-存在 `ctx.deepseekLlmApiExtensions` 时，适配器会在 `fetch` 前根据确切序列化基础请求准备已注册顶层字段。准备或字段冲突在 HTTP 前失败；2xx 响应后，适配器会在消费 SSE（Server-Sent Events）前接受每项已捕获贡献。传输与非 2xx 失败不会接受它们。基础请求连同扩展字段无法序列化时，适配器只发送基础请求并跳过接受，让贡献方在之后的请求中重发自身状态，同时记录一条列出被省略字段的告警。随产品交付的组合用它提供默认启用的增量 `dsh_session_log` 字段和默认启用的活跃 `dsh_plugin_packages` 清单；两者都留在模型输入之外。
-
 ### 失败与恢复
 
 配置仅接受 Messages，不提供 `protocol` 字段。若解析报告 `protocol is not configurable`，请从 `$DSH_HOME/profiles/<profile>/cordis.patch.yml` 中 `llm-deepseek` 条目的 `config` 以及覆盖它的 home patch 或命令行 overlay 中删除 `protocol`，保留需要的 `baseURL`、`apiKeyEnv` 和 `models` 字段。已存储的配置若被适配器校验拒绝，后续请求会持续失败，直到配置修正；在模型设置卡中保存其他字段不会移除未知属性。请编辑配置文件，等待 profile 通过 HMR（热模块替换）重新加载；若未启用 HMR，则重启 profile。
 
 成功的 Files 响应必须包含有效 JSON。上传、列举、获取和删除操作的 JSON 解码失败抛出 `INVALID_RESPONSE`，消息包含操作名称与 HTTP 状态，`LlmError.failure` 保留该状态，`cause` 保留原始解析错误。读取响应体时的传输和取消错误保留其原有身份。
 
-非 2xx 响应以稳定 code 失败：`AUTH`（401/403）、`QUOTA`、`RATE_LIMIT`、`CONTEXT_WINDOW_EXCEEDED`、`INVALID_REQUEST`、`SERVER` 以及其他情况的 `HTTP_<status>`；响应前传输失败抛出 `TRANSPORT`，调用方中止抛出 `ABORTED`，流空闲超时抛出 `TIMEOUT`。请求扩展准备、字段冲突或 2xx 后接受失败使用 `REQUEST_EXTENSION`。当提供方未指出 file id 时，规范化图片拒绝会列出所有可能附件及其持久位置。陈旧文件拒绝会在一次上传索引更新中删除全部点名映射（或该次尝试使用的全部映射），并允许一次替换模型请求。协议违规抛出 `STREAM_CLOSED` 或 `MALFORMED_RESPONSE`；不带内容块的终止 `stop` 变成 `EMPTY_RESPONSE`，默认重试策略会重试它。官方路由缺少 API Key 的请求以 `MISSING_CREDENTIAL` 失败；格式错误的凭据以 `INVALID_CREDENTIAL` 失败，并点名需要修复的引用——绝不包含密钥的任何部分。
+非 2xx 响应以稳定 code 失败：`AUTH`（401/403）、`QUOTA`、`RATE_LIMIT`、`CONTEXT_WINDOW_EXCEEDED`、`INVALID_REQUEST`、`SERVER` 以及其他情况的 `HTTP_<status>`；响应前传输失败抛出 `TRANSPORT`，调用方中止抛出 `ABORTED`，流空闲超时抛出 `TIMEOUT`。当提供方未指出 file id 时，规范化图片拒绝会列出所有可能附件及其持久位置。陈旧文件拒绝会在一次上传索引更新中删除全部点名映射（或该次尝试使用的全部映射），并允许一次替换模型请求。协议违规抛出 `STREAM_CLOSED` 或 `MALFORMED_RESPONSE`；不带内容块的终止 `stop` 变成 `EMPTY_RESPONSE`，默认重试策略会重试它。官方路由缺少 API Key 的请求以 `MISSING_CREDENTIAL` 失败；格式错误的凭据以 `INVALID_CREDENTIAL` 失败，并点名需要修复的引用——绝不包含密钥的任何部分。
 
 提供方插件负责目录可用性；仅账号路由要求存有凭据才能发现模型。两者的目录独立配置；传输层提供共享的默认模型元数据和能力解析。
 
@@ -139,7 +137,7 @@ Files 模式通过 `maxRequestFilesBytes` 与 `maxImagesPerRequest` 限制保留
 
 ### 协议流程
 
-一次 `stream()` 调用通常发一条模型请求：解析确定性请求图片、优先使用 Files id、准备所有已注册顶层请求扩展、向解析后的 `baseURL` 发起 fetch、在 HTTP 2xx 后接受扩展事务，并把 SSE 流翻译为 harness 协议。文件解析失败会让首条请求使用内联模式；提供方的陈旧文件响应允许一次替换尝试，且替换解析失败时也使用内联模式。每条模型与 Files 调用都携带共享归因。模型请求还在模型输入之外携带稳定匿名用户 id，并在存在 session id 时携带该值。推理历史会按需序列化回请求，缓存计量则把 DeepSeek 的缓存命中指标映射进 harness 用量桶。
+一次 `stream()` 调用通常发一条模型请求：解析确定性请求图片、优先使用 Files id、向配置的 `baseURL` 发起 fetch，并把 SSE 流翻译为 harness 协议。文件解析失败会让首条请求使用内联模式；提供方的陈旧文件响应允许一次替换尝试，且替换解析失败时也使用内联模式。每条模型与 Files 调用都携带共享归因。推理历史会按需序列化回请求，缓存计量则把 DeepSeek 的缓存命中指标映射进 harness 用量桶。
 
 </details>
 
@@ -154,9 +152,6 @@ Files 模式通过 `maxRequestFilesBytes` 与 `maxImagesPerRequest` 限制保留
 - [llm-pi-ai 适配器](../llm-pi-ai/README.zh.md)——服务其他提供方与网关的库实现孪生。
 - [LLM 流式子系统](../../../docs/subsystems/llm-streaming.zh.md)——`StreamChunk` 协议与适配器约定。
 - [llm-retry](../llm-retry/README.zh.md)——应用本适配器 `retryPolicy` 的重试执行器。
-- [DeepSeek 请求扩展](../deepseek-llm-api-extensions/README.zh.md)——提供方专用顶层字段的生命周期与接受语义。
-- [会话日志上传](../../session/session-log-deepseek/README.zh.md)——默认启用的增量 `dsh_session_log` 贡献。
-- [插件包清单](../plugin-package-inventory-deepseek/README.zh.md)——默认启用的 `dsh_plugin_packages` 贡献。
 - [孪生 LLM 适配器](../../../.agents/notes/implemented/architecture/2026-06-13-twin-llm-adapters.zh.md)——为什么 DeepSeek 交付两个结构不同的适配器。
 - [强制应用归因标头](../../../.agents/notes/implemented/architecture/2026-06-21-mandatory-app-attribution-headers.zh.md)——每个提供方请求携带的身份。
 
@@ -169,7 +164,7 @@ Files 模式通过 `maxRequestFilesBytes` 与 `maxImagesPerRequest` 限制保留
 
 #### 模型看到什么
 
-所选 DeepSeek 模型会收到 harness 系统提示词、消息历史、工具 schema、停止序列与调用配置（`maxTokens`、`reasoningEffort`、`temperature`），不包含适配器撰写的提示词散文。提供方专用请求扩展字段留在模型输入之外。视觉模型通常接收 Files API 引用形式的用户与工具结果图片，其旁带附件句柄和请求预览尺寸。当前执行文件系统可以映射附件提供方的宿主对象时，它还会收到规范化对象路径；描述符会把该副本标记为只读，并警告规范化可能缩放或重新编码上传内容。Files 解析失败时，全部保留图片改用内联 base64；超出预算的较旧图片则在占位文本中保留当前请求已解析的访问方式。此前 assistant 轮次的推理内容会原样传回，无论该轮次是否调用了工具。 对于非法 JSON 或非对象的历史工具参数，Messages 发送 `{}`。此参数兜底保留调用 ID、工具名和工具结果；原始参数仍保留在 Session 日志中。新生成的 Messages 工具参数仍须是有效 JSON 对象。 Messages 会省略用户消息和工具结果中的 `reasoning` 与 `tool-call` 块。这也允许回放包含助手输出的已保存子 Agent 通知；原始 Session 内容保持完整。转换后的空用户消息会被跳过，空工具结果则保留调用 id 和错误标记。其他不支持的输入块仍会以 `UNSUPPORTED_CONTENT` 失败。
+所选 DeepSeek 模型会收到 harness 系统提示词、消息历史、工具 schema、停止序列与调用配置（`maxTokens`、`reasoningEffort`、`temperature`），不包含适配器撰写的提示词散文。视觉模型通常接收 Files API 引用形式的用户与工具结果图片，其旁带附件句柄和请求预览尺寸。当前执行文件系统可以映射附件提供方的宿主对象时，它还会收到规范化对象路径；描述符会把该副本标记为只读，并警告规范化可能缩放或重新编码上传内容。Files 解析失败时，全部保留图片改用内联 base64；超出预算的较旧图片则在占位文本中保留当前请求已解析的访问方式。此前 assistant 轮次的推理内容会原样传回，无论该轮次是否调用了工具。 对于非法 JSON 或非对象的历史工具参数，Messages 发送 `{}`。此参数兜底保留调用 ID、工具名和工具结果；原始参数仍保留在 Session 日志中。新生成的 Messages 工具参数仍须是有效 JSON 对象。 Messages 会省略用户消息和工具结果中的 `reasoning` 与 `tool-call` 块。这也允许回放包含助手输出的已保存子 Agent 通知；原始 Session 内容保持完整。转换后的空用户消息会被跳过，空工具结果则保留调用 id 和错误标记。其他不支持的输入块仍会以 `UNSUPPORTED_CONTENT` 失败。
 
 #### Token 影响
 
@@ -207,7 +202,6 @@ loop 保留的响应块会追加到下一个请求，并保留其更早的可复
 - **Messages 历史内 system 更新需要保留用户或工具结果轮次**——若更新后的全部用户输入都被省略，且前一个协议轮次是 assistant，序列化会在下一个 assistant 之前或请求结束处以 `UNSUPPORTED_CONTENT` 失败。文本或空工具结果可以保留该轮次。不支持将更新移到更早的轮次；[输入历史决策](../../../.agents/notes/implemented/bug-fix/2026-09-18-messages-input-history-compatibility.zh.md)记录了排序约束。
 - **图片是仅用于输入的持久附件**——不支持直接外部 URL 与 assistant 图片输出；DeepSeek 输入通常使用 Files API，仅在单次请求恢复时使用内联 base64。
 - 默认目录公布 `deepseek-flash` 及其文本、图片和历史内更新能力，不探测网关可用性。网关开放该 ID 前，请求可能以 `INVALID_REQUEST` 失败。
-- [adapter.e2e.ts](tests/adapter.e2e.ts) 与 [runtime.e2e.ts](tests/runtime.e2e.ts) 中的真实 API 检查需要 `DEEPSEEK_API_KEY`。将 `DEEPSEEK_IN_HISTORY_MODEL` 设为受支持的非空模型 ID 可运行 system 更新检查：适配器套件使用 `high` 思考强度，运行时套件则在关闭思考时比较缓存复用，可能受到指令遵循不稳定的影响。运行时图片用例还需要 `DEEPSEEK_FLASH_E2E=1` 或 `DEEPSEEK_VISION_E2E=1`。
 
 <a id="dev-note"></a>
 ### 开发备注

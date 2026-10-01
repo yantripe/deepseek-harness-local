@@ -9,7 +9,7 @@ English | [中文](README.zh.md)
 
 ## Summary
 
-Provide the shared DeepSeek Messages transport, request configuration, and model capabilities. Compose [API-key](../llm-deepseek-api-key/README.md) or [account](../llm-deepseek-account/README.md) plugins for authentication, model discovery, and provider registration. Valid settings changes affect subsequent calls while in-flight calls retain their configuration. This package can run beside the [pi-ai adapter](../llm-pi-ai/README.md).
+Provide the shared DeepSeek Messages transport, request configuration, and model capabilities. Compose the [API-key](../llm-deepseek-api-key/README.md) plugin for authentication, model discovery, and provider registration. Valid settings changes affect subsequent calls while in-flight calls retain their configuration. This package can run beside the [pi-ai adapter](../llm-pi-ai/README.md).
 
 `resolveAuth(connection)` returns the provider-owned authentication headers and an optional failure callback bound to that request’s credential. Messages and Files send those headers without selecting a credential mode. Upload reuse is isolated by endpoint and a hash of the authentication headers; raw credentials are not persisted.
 
@@ -85,7 +85,7 @@ Messages sends text, thinking, tool calls, and tool results as content blocks, r
 
 ### Account credentials
 
-`deepseek-official` resolves only its configured API-key reference. `deepseek-account` resolves only the stored grant from the [account provider](../../credentials/deepseek-account-platform/README.md), whose allowed `inferenceOrigin` defaults to `https://api.deepseek.com`. Neither route falls back to the other. Signing out removes the account grant and preserves API keys.
+`deepseek-official` resolves only its configured API-key reference; its endpoint comes from `baseURL` or `DEEPSEEK_BASE_URL`, and requests fail locally while neither is set.
 
 Messages and Files requests send account tokens as `x-dsh-auth-token` without a Bearer prefix; API keys use `x-api-key`. Neither credential mode follows redirects. The account provider owns HTTP 401 classification and credential invalidation; the transport passes failures to its callback.
 
@@ -107,15 +107,13 @@ Connection options are captured from volatile Config references once per operati
 
 ### Provider-specific request fields
 
-When `ctx.deepseekLlmApiExtensions` is present, the adapter prepares its registered top-level fields from the exact serialized base request before `fetch`. Preparation or field collisions fail before HTTP; after a 2xx response, the adapter accepts every captured contribution before consuming SSE. Transport and non-2xx failures do not accept them. When the base request with its extension fields fails to serialize, the adapter sends the base request alone, skips acceptance so contributors resend their state later, and logs a warning naming the omitted fields. Shipped compositions use this for the default-on incremental `dsh_session_log` field and the default-on active `dsh_plugin_packages` inventory; both stay outside model input.
-
 ### Failures and recovery
 
 Configuration accepts Messages only and has no `protocol` field. If resolution reports `protocol is not configurable`, remove `protocol` from the `config` of the `llm-deepseek` entry in `$DSH_HOME/profiles/<profile>/cordis.patch.yml` and from any overriding home patch or command-line overlay. Keep the intended `baseURL`, `apiKeyEnv`, and `models` fields. A stored configuration rejected by adapter validation makes subsequent requests fail until corrected; saving other fields in the Models card does not remove an unknown property. Edit the configuration file, then let the profile reload it through HMR or restart the profile if HMR is disabled.
 
 Successful Files responses must contain valid JSON. JSON decoding failures from upload, list, retrieve, and delete throw `INVALID_RESPONSE` with the operation and HTTP status in the message, the status in `LlmError.failure`, and the original parser error as `cause`. Body-read transport and cancellation errors retain their identity.
 
-Non-2xx responses fail with stable codes: `AUTH` (401/403), `QUOTA`, `RATE_LIMIT`, `CONTEXT_WINDOW_EXCEEDED`, `INVALID_REQUEST`, `SERVER`, and `HTTP_<status>` otherwise; pre-response transport failures throw `TRANSPORT`, caller aborts throw `ABORTED`, and stream-idle expiry throws `TIMEOUT`. Request-extension preparation, field collision, or post-2xx acceptance fails with `REQUEST_EXTENSION`. A normalized-image rejection names every plausible attachment and its durable position when the provider does not identify a file id. Stale-file rejection removes every named mapping (or every mapping used by the attempt) in one upload-index update and permits one replacement model request. Protocol violations throw `STREAM_CLOSED` or `MALFORMED_RESPONSE`, and a terminal `stop` with no content blocks becomes `EMPTY_RESPONSE`, which the default retry policy retries. A request on the official route without an API key fails with `MISSING_CREDENTIAL`, and a malformed credential fails with `INVALID_CREDENTIAL` naming the reference to fix — never any part of the key.
+Non-2xx responses fail with stable codes: `AUTH` (401/403), `QUOTA`, `RATE_LIMIT`, `CONTEXT_WINDOW_EXCEEDED`, `INVALID_REQUEST`, `SERVER`, and `HTTP_<status>` otherwise; pre-response transport failures throw `TRANSPORT`, caller aborts throw `ABORTED`, and stream-idle expiry throws `TIMEOUT`. A normalized-image rejection names every plausible attachment and its durable position when the provider does not identify a file id. Stale-file rejection removes every named mapping (or every mapping used by the attempt) in one upload-index update and permits one replacement model request. Protocol violations throw `STREAM_CLOSED` or `MALFORMED_RESPONSE`, and a terminal `stop` with no content blocks becomes `EMPTY_RESPONSE`, which the default retry policy retries. A request on the official route without an API key fails with `MISSING_CREDENTIAL`, and a malformed credential fails with `INVALID_CREDENTIAL` naming the reference to fix — never any part of the key.
 
 Provider plugins own catalog availability; only the account route requires a stored grant for discovery. Their catalogs are configured independently; the transport supplies shared default model metadata and capability resolution.
 
@@ -139,7 +137,7 @@ The plugin is built on one explicit resolve step and one registration fact. `res
 
 ### Wire flow
 
-One `stream()` call normally makes one model request: resolve deterministic request images, prefer Files ids, prepare any registered top-level request extensions, fetch from the resolved `baseURL`, accept extension transactions after HTTP 2xx, and translate the SSE stream into the harness protocol. File-resolution failure makes the first request inline; a provider stale-file response permits one replacement attempt, also inline if replacement resolution fails. Every model and Files call carries shared attribution. Model requests also carry the stable anonymous user id outside model input, plus a session id when present. Reasoning history is serialized back when required, and cache accounting maps DeepSeek's cache-hit metrics into harness usage.
+One `stream()` call normally makes one model request: resolve deterministic request images, prefer Files ids, fetch from the configured `baseURL`, and translate the SSE stream into the harness protocol. File-resolution failure makes the first request inline; a provider stale-file response permits one replacement attempt, also inline if replacement resolution fails. Every model and Files call carries shared attribution. Reasoning history is serialized back when required, and cache accounting maps DeepSeek's cache-hit metrics into harness usage.
 
 </details>
 
@@ -154,9 +152,6 @@ Read these pages when the package-level contract is not enough. They move from t
 - [llm-pi-ai adapter](../llm-pi-ai/README.md) — the library-backed twin serving other providers and gateways.
 - [LLM streaming subsystem](../../../docs/subsystems/llm-streaming.md) — the `StreamChunk` protocol and adapter contract.
 - [llm-retry](../llm-retry/README.md) — the retry executor that applies this adapter's `retryPolicy`.
-- [DeepSeek request extensions](../deepseek-llm-api-extensions/README.md) — lifecycle and acceptance semantics for provider-specific top-level fields.
-- [Session-log upload](../../session/session-log-deepseek/README.md) — the default-on incremental `dsh_session_log` contribution.
-- [Plugin package inventory](../plugin-package-inventory-deepseek/README.md) — the default-on `dsh_plugin_packages` contribution.
 - [Twin LLM adapters](../../../.agents/notes/implemented/architecture/2026-06-13-twin-llm-adapters.md) — why DeepSeek ships two structurally different adapters.
 - [Mandatory app attribution headers](../../../.agents/notes/implemented/architecture/2026-06-21-mandatory-app-attribution-headers.md) — the identity every provider request carries.
 
@@ -169,7 +164,7 @@ Read these pages when the package-level contract is not enough. They move from t
 
 #### What the model sees
 
-The selected DeepSeek model receives the harness system prompt, message history, tool schemas, stop sequences, and call config (`maxTokens`, `reasoningEffort`, `temperature`) without adapter-authored prompt prose. Provider-specific request-extension fields remain outside model input. The vision model normally receives retained user and tool-result images as Files API references beside attachment handles and request-preview dimensions. It also receives a normalized-object path when the current execution filesystem maps the attachment provider's host object; the descriptor marks this copy read-only and warns that normalization may have resized or re-encoded the upload. A Files resolution failure sends all retained images as inline base64 instead, and an over-budget older image keeps the access resolved for that request in its placeholder. Reasoning content from a prior assistant turn is passed back verbatim, whether or not that turn called a tool. Messages sends `{}` for historical tool arguments that are malformed JSON or are not objects. This argument fallback preserves call ids, tool names, and tool results; the original arguments stay in the Session log. Newly generated Messages tool arguments still require valid JSON objects. Messages omits `reasoning` and `tool-call` blocks inside user messages and tool results. This also permits replay of saved subagent notices containing assistant output; the original Session content remains intact. Empty user messages are skipped after conversion, while empty tool results retain their call ids and error flags. Other unsupported input blocks still fail with `UNSUPPORTED_CONTENT`.
+The selected DeepSeek model receives the harness system prompt, message history, tool schemas, stop sequences, and call config (`maxTokens`, `reasoningEffort`, `temperature`) without adapter-authored prompt prose. The vision model normally receives retained user and tool-result images as Files API references beside attachment handles and request-preview dimensions. It also receives a normalized-object path when the current execution filesystem maps the attachment provider's host object; the descriptor marks this copy read-only and warns that normalization may have resized or re-encoded the upload. A Files resolution failure sends all retained images as inline base64 instead, and an over-budget older image keeps the access resolved for that request in its placeholder. Reasoning content from a prior assistant turn is passed back verbatim, whether or not that turn called a tool. Messages sends `{}` for historical tool arguments that are malformed JSON or are not objects. This argument fallback preserves call ids, tool names, and tool results; the original arguments stay in the Session log. Newly generated Messages tool arguments still require valid JSON objects. Messages omits `reasoning` and `tool-call` blocks inside user messages and tool results. This also permits replay of saved subagent notices containing assistant output; the original Session content remains intact. Empty user messages are skipped after conversion, while empty tool results retain their call ids and error flags. Other unsupported input blocks still fail with `UNSUPPORTED_CONTENT`.
 
 #### Token effect
 
@@ -207,7 +202,6 @@ These limits define where the adapter stops and future work begins. They are cur
 - **Messages in-history system updates require a retained user or tool-result turn** — if all user input after an update is omitted and the preceding wire turn is assistant, serialization fails with `UNSUPPORTED_CONTENT` before the next assistant or at the end of the request. Text or an empty tool result can retain that turn. Moving the update to an earlier turn is not supported; the [input-history decision](../../../.agents/notes/implemented/bug-fix/2026-09-18-messages-input-history-compatibility.md) records the ordering constraint.
 - **Images are input-only durable attachments** — direct external URLs and assistant image output are not supported; DeepSeek input normally uses the Files API and uses inline base64 only for per-request recovery.
 - The default catalog advertises `deepseek-flash` and its text/image and in-history capabilities without probing gateway availability. Requests can fail with `INVALID_REQUEST` until the gateway enables the id.
-- Real API checks in [adapter.e2e.ts](tests/adapter.e2e.ts) and [runtime.e2e.ts](tests/runtime.e2e.ts) require `DEEPSEEK_API_KEY`. Set `DEEPSEEK_IN_HISTORY_MODEL` to a supported nonempty model id to run system-update checks: the adapter suite uses `high` effort, while the runtime suite compares cache reuse with thinking disabled and can be sensitive to instruction-following instability. The runtime image cases additionally require `DEEPSEEK_FLASH_E2E=1` or `DEEPSEEK_VISION_E2E=1`.
 
 <a id="dev-note"></a>
 ### Dev Note

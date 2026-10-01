@@ -100,11 +100,6 @@
     - id: authorization
       name: '@deepseek-ai/dsh-authorization'
 
-    - id: deepseek-account
-      name: '@deepseek-ai/dsh-deepseek-account-platform'
-      config:
-        desktopPlatform: !!js "ctx.get('profileContext')?.name === 'desktop' && ['darwin', 'win32'].includes(process.platform) ? process.platform : null"
-
     - id: credentials
       name: '@deepseek-ai/dsh-credentials-local'
 
@@ -417,27 +412,16 @@
         thresholds: [3, 5, 8]
         argumentsPreviewChars: 500
 
-    # The shared base enables the stable model-facing web_search and web_fetch
-    # tools. The Web app disables this host row and composes both tools per agent
-    # preset; products with a stricter network policy override tool-web. DeepSeek
-    # search resolves the same DEEPSEEK_API_KEY
-    # credential the Models page manages for chat, at each search; its Messages
-    # endpoint is configured independently from the model route, so it takes its own
-    # base-URL override. Anonymous fetch accepts only public HTTP(S) destinations,
+    # The shared base enables the model-facing web_fetch tool only. No search
+    # provider ships: the vendor search route was removed, so web_search stays
+    # unregistered until a deployment mounts its own provider and sets
+    # `search: true`. The Web app disables this host row and composes the tool
+    # per agent preset. Anonymous fetch accepts only public HTTP(S) destinations,
     # resolves and validates every destination, and pins every actual connection.
-    # Search is a full auxiliary model request with server-side retrieval, so this
-    # shipped DeepSeek route gets 60s while the provider-neutral tool default
-    # remains 30s.
     - id: web
       name: '@deepseek-ai/dsh-web'
       config:
-        searchProvider: deepseek-official
         fetchProvider: http
-
-    - id: web-search-deepseek
-      name: '@deepseek-ai/dsh-web-search-deepseek'
-      config:
-        apiKeyEnv: DEEPSEEK_API_KEY
 
     - id: web-fetch-http
       name: '@deepseek-ai/dsh-web-fetch-http'
@@ -445,8 +429,8 @@
     - id: tool-web
       name: '@deepseek-ai/dsh-tool-web'
       config:
+        search: false
         fetch: true
-        searchTimeoutMs: 60000
 
     - id: mcp-resources
       name: '@deepseek-ai/dsh-mcp-resources'
@@ -477,12 +461,10 @@
     - id: fs-sandbox
       name: '@deepseek-ai/dsh-fs-sandbox'
 
-    # The native DeepSeek adapter. No key or endpoint is inlined: both resolve per
-    # request from the `llm-deepseek:` settings section over this entry, with the
-    # key coming from the credential store below. Thinking defaults are a deployment
-    # choice.
+    # The native DeepSeek Messages adapter. No key or endpoint is inlined: both
+    # resolve per request from the `llm-deepseek:` settings section over this
+    # entry (or DEEPSEEK_BASE_URL), with the key coming from the credential store.
+    # There is no vendor default endpoint: until a self-hosted baseURL is set,
+    # every request fails locally without network access.
     - id: llm-deepseek
       name: '@deepseek-ai/dsh-llm-deepseek-api-key'
-
-    - id: llm-deepseek-account
-      name: '@deepseek-ai/dsh-llm-deepseek-account'

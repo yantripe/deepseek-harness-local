@@ -12,26 +12,24 @@ vi.mock('node:child_process', async (importOriginal) => {
 })
 
 describe('installer preparation preserves application dependencies', () => {
-  it.each(['win32', 'darwin'] as const)('rejects a missing production policy before signing on %s', async (platform) => {
+  it.each(['win32', 'darwin'] as const)('packages %s without an update feed or remote policy', async (platform) => {
     const { createElectronBuilderConfig } = await import('../scripts/electron-builder-config.mjs')
-    expect(() => createElectronBuilderConfig({ DSH_DESKTOP_APP_ID: 'com.example.installer',
-      DSH_DESKTOP_AUTO_UPDATE_ENV: 'production',
-      DSH_DESKTOP_MANDATORY_UPDATE_TEST_ORIGIN: 'https://test.example.com',
-    }, platform, 'x64')).toThrow('DSH_DESKTOP_MANDATORY_UPDATE_PROD_ORIGIN')
+    const config = createElectronBuilderConfig({ DSH_DESKTOP_APP_ID: 'com.example.installer', DSH_DESKTOP_UNSIGNED: platform === 'win32' ? '1' : '0',
+      DSH_DESKTOP_MACOS_SIGNING_IDENTITY: 'Example Company (TEAMID1234)', DSH_DESKTOP_MACOS_TEAM_ID: 'TEAMID1234',
+      APPLE_KEYCHAIN_PROFILE: 'installer-test' }, platform, 'x64')
+    expect(config.publish).toBeNull()
+    expect(JSON.stringify(config)).not.toMatch(/mandatory|updateConfig|https?:\/\//iu)
   })
   it.each(['win32', 'darwin'] as const)('keeps electron-builder responsible for node_modules on %s', async (platform) => {
     execute.mockClear()
     const env = {
       DSH_DESKTOP_APP_ID: 'com.example.installer',
-      DSH_DESKTOP_MANDATORY_UPDATE_TEST_ORIGIN: 'https://policy.example.com',
-      DSH_DESKTOP_MANDATORY_UPDATE_CONFIG: JSON.stringify({ allowedAuthOrigins: ['https://login.example.com'] }),
       DSH_DESKTOP_TARGET_PLATFORM: platform,
       DSH_DESKTOP_TARGET_ARCH: 'x64',
       DSH_DESKTOP_UNSIGNED: platform === 'win32' ? '1' : '0',
       DSH_DESKTOP_MACOS_SIGNING_IDENTITY: 'Example Company (TEAMID1234)',
       DSH_DESKTOP_MACOS_TEAM_ID: 'TEAMID1234',
       APPLE_KEYCHAIN_PROFILE: 'installer-test',
-      DOWNLOAD_TEST_ORIGIN: 'https://desktop-updates.example.com', DOWNLOAD_TEST_RELEASE_ID: '0123456789abcdef0123456789abcdef',
     }
     for (const [name, value] of Object.entries(env)) vi.stubEnv(name, value)
     try {
@@ -68,8 +66,6 @@ describe('installer preparation preserves application dependencies', () => {
     const { createElectronBuilderConfig } = await import('../scripts/electron-builder-config.mjs')
     const config = createElectronBuilderConfig({
       DSH_DESKTOP_APP_ID: 'com.example.installer',
-      DSH_DESKTOP_MANDATORY_UPDATE_TEST_ORIGIN: 'https://policy.example.com',
-      DSH_DESKTOP_MANDATORY_UPDATE_CONFIG: JSON.stringify({ allowedAuthOrigins: ['https://login.example.com'] }),
       DSH_DESKTOP_TARGET_PLATFORM: 'win32',
       DSH_DESKTOP_TARGET_ARCH: 'x64',
       DSH_DESKTOP_UNSIGNED: '1',
@@ -89,9 +85,6 @@ describe('installer preparation preserves application dependencies', () => {
     const { createElectronBuilderConfig } = await import('../scripts/electron-builder-config.mjs')
     const config = createElectronBuilderConfig({
       DSH_DESKTOP_APP_ID: 'com.example.installer',
-      DSH_DESKTOP_AUTO_UPDATE_ENV: 'production',
-      DSH_DESKTOP_MANDATORY_UPDATE_TEST_ORIGIN: 'https://harness-test.deepseek.com',
-      DSH_DESKTOP_MANDATORY_UPDATE_PROD_ORIGIN: 'https://policy.example.com',
       DSH_DESKTOP_MACOS_SIGNING_IDENTITY: 'Example Company (TEAMID1234)',
       DSH_DESKTOP_MACOS_TEAM_ID: 'TEAMID1234',
       APPLE_KEYCHAIN_PROFILE: 'installer-test',

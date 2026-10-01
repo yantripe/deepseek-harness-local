@@ -535,4 +535,3 @@ describe('ui-model-selection dual entry', () => {
     expect(b.calls).toEqual({ models: 2, select: 0 })
   })
 })
-
