@@ -138,7 +138,7 @@
             name: '@deepseek-ai/dsh-tool-web'
             config:
               search: false
-              fetch: true
+              fetch: false
           - id: present
             name: '@deepseek-ai/dsh-tool-present'
           - id: tool-plugin-manager

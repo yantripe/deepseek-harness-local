@@ -137,7 +137,7 @@
             name: '@deepseek-ai/dsh-tool-web'
             config:
               search: false
-              fetch: true
+              fetch: false
           - id: tool-cordis
             name: '@deepseek-ai/dsh-tool-cordis'
           - id: skill-filesystem

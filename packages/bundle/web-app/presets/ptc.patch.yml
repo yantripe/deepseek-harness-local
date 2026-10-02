@@ -140,7 +140,7 @@
             name: '@deepseek-ai/dsh-tool-web'
             config:
               search: false
-              fetch: true
+              fetch: false
           - id: tool-presentation
             name: '@deepseek-ai/dsh-agent-tool-presentation'
             config:
