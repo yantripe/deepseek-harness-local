@@ -91,7 +91,7 @@ afterEach(() => {
 })
 
 describe('BrowserAuth', () => {
-  it('mints one process token and a persistent authority-bound cookie', async () => {
+  it('mints one process token and an authority-bound cookie revoked by restart', async () => {
     const store = new RecordCredentials()
     const processOwner = {}
     const first = await createAuth(store, 30, processOwner)
@@ -115,29 +115,25 @@ describe('BrowserAuth', () => {
     expect(first.isAuthenticated(request('/', 'localhost:3080', { cookie: login.cookie }))).toBe(false)
     expect(first.isAuthenticated(request('/', '127.0.0.1:3081', { cookie: login.cookie }))).toBe(false)
 
+    // A Connection reload keeps the process launch token; every activation
+    // rotates the signing secret, so the earlier cookie no longer verifies.
     const reloaded = await createAuth(store, 30, processOwner)
     expect(reloaded.authenticatedUrl('http://127.0.0.1:3080')).toBe(login.launchUrl)
-    expect(reloaded.isAuthenticated(request('/', '127.0.0.1:3080', { cookie: login.cookie }))).toBe(true)
+    expect(reloaded.isAuthenticated(request('/', '127.0.0.1:3080', { cookie: login.cookie }))).toBe(false)
 
+    // A service restart revokes both the old link and the old cookie.
     const restarted = await createAuth(store)
     expect(new URL(restarted.authenticatedUrl('http://127.0.0.1:3080')).searchParams.get('token'))
       .not.toBe(new URL(login.launchUrl).searchParams.get('token'))
-    expect(restarted.isAuthenticated(request('/', '127.0.0.1:3080', { cookie: login.cookie }))).toBe(true)
+    expect(restarted.isAuthenticated(request('/', '127.0.0.1:3080', { cookie: login.cookie }))).toBe(false)
     const staleUrl = new URL(login.launchUrl)
-    const redirected = response()
+    const rejected = response()
     expect(restarted.authorizeIndex(request(
       `${staleUrl.pathname}${staleUrl.search}`,
       '127.0.0.1:3080',
       { cookie: login.cookie },
-    ), redirected.value)).toBe(false)
-    expect(redirected.state).toEqual({
-      status: 303,
-      headers: {
-        'cache-control': 'no-store',
-        'location': './',
-        'referrer-policy': 'no-referrer',
-      },
-    })
+    ), rejected.value)).toBe(false)
+    expect(rejected.state.status).toBe(401)
   })
 
   it('preserves the caller authority and mount while adding only this process token', async () => {

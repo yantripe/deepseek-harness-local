@@ -15,6 +15,16 @@ import { parseSse } from './sse.ts'
 import { translate } from './translate.ts'
 import { providerError, providerErrorDetail } from './transport.ts'
 
+/**
+ * Local deployment: model traffic stays on this machine unless the operator
+ * opts out explicitly, so a changed baseURL (Models page, environment, patch)
+ * fails loudly instead of quietly switching to a remote or cloud endpoint.
+ */
+function isLocalEndpoint(baseURL: string): boolean {
+  const host = new URL(baseURL).hostname.replace(/^\[|\]$/g, '').toLowerCase()
+  return host === 'localhost' || host === '::1' || /^127(\.\d{1,3}){3}$/.test(host)
+}
+
 /** DeepSeek provider using Messages content and native thinking replay. */
 export class DeepSeekAdapter<C extends Connection = Connection> extends LlmAdapter {
   private readonly files: DeepSeekFileStore
@@ -80,6 +90,13 @@ export class DeepSeekAdapter<C extends Connection = Connection> extends LlmAdapt
         `llm-deepseek: provider route "${options.provider}" has no endpoint; set its baseURL on the Models page `
         + 'or export DEEPSEEK_BASE_URL to the self-hosted Messages endpoint',
         'MISSING_ENDPOINT',
+      )
+    }
+    if (!isLocalEndpoint(connection.baseURL) && process.env.DSH_ALLOW_REMOTE_MODEL !== '1') {
+      throw new LlmError(
+        `llm-deepseek: endpoint ${new URL(connection.baseURL).host} is not on this machine; this build sends model `
+        + 'requests only to loopback (127.0.0.1, ::1, localhost). Set DSH_ALLOW_REMOTE_MODEL=1 to allow it deliberately',
+        'REMOTE_ENDPOINT_BLOCKED',
       )
     }
     const { messages, versions } = await prepareImages(

@@ -8,7 +8,8 @@ import { Context } from '@deepseek-ai/cordis'
 import { constants as bufferConstants } from 'node:buffer'
 import { once } from 'node:events'
 import { watch } from 'chokidar'
-import { dirname, isAbsolute, relative, resolve, sep } from 'node:path'
+import { homedir } from 'node:os'
+import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import z from '@deepseek-ai/schemastery'
 import { FileSystem, FsError, FsVersion } from '@deepseek-ai/dsh-fs'
@@ -50,6 +51,28 @@ export interface Config {
    * runtime's safe allocation/decode maximum. Defaults to 10 MiB.
    */
   diffBasisMaxBytes?: number
+  /**
+   * Paths no target may resolve to or under. Defaults to the Harness home's
+   * secrets, credentials and Session history plus every entry of
+   * `DSH_PROTECTED_PATHS` (path-delimiter separated, e.g. the service log
+   * directory). Local deployment: model-facing file tools run inside the
+   * Harness process, so this is what keeps them away from these files.
+   */
+  deniedPaths?: string[]
+}
+
+/** The Harness-home files and directories model-facing tools must never reach. */
+function defaultDeniedPaths(): string[] {
+  const configuredHome = process.env.DSH_HOME?.trim()
+  const home = resolve(configuredHome === undefined || configuredHome === '' ? join(homedir(), '.dsh') : configuredHome)
+  const extra = (process.env.DSH_PROTECTED_PATHS ?? '').split(process.platform === 'win32' ? ';' : ':')
+    .map(entry => entry.trim()).filter(entry => entry !== '')
+  return [join(home, '.env'), join(home, '.credentials.yaml'), join(home, 'sessions'), join(home, 'cordis.patch.yml'), ...extra]
+}
+
+function comparablePath(path: string): string {
+  const absolute = resolve(path)
+  return process.platform === 'win32' ? absolute.toLowerCase() : absolute
 }
 
 type ResolvedConfig = Required<Config>
@@ -92,6 +115,7 @@ export class LocalFileSystem extends FileSystem {
   static Config: z<Config> = z.object({
     cwd: z.string().default(process.cwd()),
     diffBasisMaxBytes: z.number().default(DEFAULT_DIFF_BASIS_MAX_BYTES),
+    deniedPaths: z.array(z.string()).default(defaultDeniedPaths()),
   })
 
   /** Validated config (schemastery applied the defaults before construction). */
@@ -134,7 +158,28 @@ export class LocalFileSystem extends FileSystem {
     if (opts?.signal?.aborted) throw new FsError('resolve aborted', 'FS_ABORTED')
     const local = await resolveLocalTarget(opts?.cwd ?? this.config.cwd, path)
     if (opts?.signal?.aborted) throw new FsError('resolve aborted', 'FS_ABORTED')
+    await this.assertNotDenied(String(local.targetKey), local.displayPath)
     return { targetKey: local.targetKey, displayPath: local.displayPath }
+  }
+
+  private deniedRoots: Promise<string[]> | undefined
+
+  /** Reject a resolved (realpath) target equal to or under a denied path. */
+  private async assertNotDenied(targetKey: string, displayPath: string): Promise<void> {
+    this.deniedRoots ??= Promise.all(this.config.deniedPaths.map(async (entry) => {
+      // Compare real paths on both sides so a junction or symlink cannot step around the list.
+      try {
+        return comparablePath(String((await resolveLocalTarget(this.config.cwd, resolve(entry))).targetKey))
+      } catch {
+        return comparablePath(entry)
+      }
+    }))
+    const target = comparablePath(targetKey)
+    for (const root of await this.deniedRoots) {
+      if (target === root || target.startsWith(root.endsWith(sep) ? root : root + sep)) {
+        throw new FsError(`cannot access "${displayPath}": protected Harness path`, 'FS_PERMISSION_DENIED')
+      }
+    }
   }
 
   override processPath(target: FsTarget): string {

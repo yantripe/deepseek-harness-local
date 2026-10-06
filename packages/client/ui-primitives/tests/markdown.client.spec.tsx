@@ -314,16 +314,27 @@ describe('MarkdownText', () => {
     expect(screen.getByRole('button', { name: 'Copy code' })).toBeTruthy()
   })
 
-  it('renders absolute HTTP(S) images with bounded presentation', () => {
+  it('never loads an image from another origin, showing its alt text instead', () => {
     const markdown = [
-      '![secure diagram](https://example.com/secure.png)',
-      '![plain diagram](http://example.com/plain.png)',
+      '![tracker](https://leak.example/pixel.png)',
+      '![plain](http://203.0.113.7/p.png)',
+    ].join('\n\n')
+    const { container } = render(<MarkdownText text={markdown} />)
+    expect(container.querySelectorAll('img')).toHaveLength(0)
+    expect(container.textContent).toContain('tracker')
+    expect(container.textContent).toContain('plain')
+  })
+
+  it('renders same-origin images with bounded presentation', () => {
+    const markdown = [
+      `![secure diagram](${window.location.origin}/secure.png)`,
+      `![plain diagram](${window.location.origin}/plain.png)`,
     ].join('\n\n')
     const { container } = render(<MarkdownText text={markdown} />)
     const images = [...container.querySelectorAll('img')]
     expect(images.map(image => image.getAttribute('src'))).toEqual([
-      'https://example.com/secure.png',
-      'http://example.com/plain.png',
+      `${window.location.origin}/secure.png`,
+      `${window.location.origin}/plain.png`,
     ])
     for (const image of images) {
       expect(image.getAttribute('loading')).toBe('lazy')

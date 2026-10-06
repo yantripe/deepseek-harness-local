@@ -16,6 +16,33 @@ import compressionMiddleware from 'compression'
 import Negotiator from 'negotiator'
 import { renderIndexInjections, type IndexInjection } from './injections.ts'
 
+/**
+ * Local deployment: the browser that shows the UI may load scripts, styles,
+ * images, fonts, frames and connections only from this Harness itself. A
+ * model answer or a sidebar page therefore cannot make the viewing device
+ * contact an outside server, whatever the server's own firewall allows.
+ * Inline scripts/styles are the index injections; eval is the client plugin
+ * loader; wasm is for highlighters. Exfiltration is closed by img/connect/frame/font.
+ */
+const LOCAL_ONLY_HEADERS: Readonly<Record<string, string>> = {
+  'Content-Security-Policy': [
+    "default-src 'self'",
+    // The client plugin loader evaluates module code at runtime; scripts still load only from here.
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval'",
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: blob:",
+    "media-src 'self' data: blob:",
+    "font-src 'self' data:",
+    "connect-src 'self'",
+    "frame-src 'self' blob: data:",
+    "worker-src 'self' blob:",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+  ].join('; '),
+  'Referrer-Policy': 'no-referrer',
+}
+
 export { renderIndexInjections } from './injections.ts'
 export type { IndexInjection, IndexInjectionPlacement } from './injections.ts'
 
@@ -241,6 +268,8 @@ export class WebServer extends Service {
     // client dropping mid-body). Per-request failures log and answer 400 —
     // never a process exit.
     this.server = createServer((req, res) => {
+      // Routes that need a stricter policy (media references) override these.
+      for (const [name, value] of Object.entries(LOCAL_ONLY_HEADERS)) res.setHeader(name, value)
       const next = (): void => {
         void handle(req, res).catch((err: unknown) => {
           this.ctx.logger.warn(err instanceof Error ? err : new Error(String(err)))

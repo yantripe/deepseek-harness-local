@@ -6,7 +6,7 @@
  *
  * External link and image destinations pass a protocol allowlist; settled
  * local file links use an explicit owner callback. Images additionally require
- * absolute HTTP(S), raw HTML renders as literal text (no HTML enters the
+ * same-origin HTTP(S) (no third-party fetches from the viewing browser), raw HTML renders as literal text (no HTML enters the
  * DOM), and KaTeX runs without trusted commands. Fragment-anchor URLs fail
  * the allowlist, so footnote references and back-references render as plain
  * text rather than in-page links.
@@ -67,10 +67,19 @@ function sanitizeUrl(url: string): string {
   }
 }
 
+/**
+ * Local deployment: the browser never fetches an image from another origin, so
+ * a model answer cannot make the viewing device contact an outside server.
+ * Only images served by this Harness itself (same origin as the page) load.
+ */
+function sameOriginHttp(url: URL): boolean {
+  return (url.protocol === 'http:' || url.protocol === 'https:')
+    && typeof window !== 'undefined' && url.origin === window.location.origin
+}
+
 function remoteImageUrl(url: string): string | undefined {
   try {
-    const protocol = new URL(url).protocol
-    return protocol === 'http:' || protocol === 'https:' ? url : undefined
+    return sameOriginHttp(new URL(url)) ? url : undefined
   } catch {
     // Same single failure mode as above: not an absolute URL.
     return undefined
@@ -80,8 +89,9 @@ function remoteImageUrl(url: string): string | undefined {
 /** Rewritten images may use Web media protocols or the Desktop application's file route. */
 function vocabularyImageUrl(url: string): string | undefined {
   try {
-    const protocol = new URL(url).protocol
-    return protocol === 'http:' || protocol === 'https:' || protocol === 'blob:' || protocol === 'data:'
+    const parsed = new URL(url)
+    const protocol = parsed.protocol
+    return sameOriginHttp(parsed) || protocol === 'blob:' || protocol === 'data:'
       || url.startsWith('dsh-app://app/api/file?')
       ? url
       : undefined

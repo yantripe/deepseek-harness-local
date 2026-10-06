@@ -108,8 +108,11 @@
       name: '@deepseek-ai/dsh-api-job-controller'
     # Workspace file service: bounded read, directory listing, and the
     # agent-write change feed inside the session workspace root.
+    # Local deployment: no operator terminal by default. It runs outside the
+    # agent sandbox, so a stolen login would turn into an unconfined shell.
     - id: terminal-controller
       name: '@deepseek-ai/dsh-api-terminal-controller'
+      disabled: true
     - id: workspace-files
       name: '@deepseek-ai/dsh-api-workspace-files'
 
@@ -256,6 +259,7 @@
 
     - id: ui-sidebar-terminal
       name: '@deepseek-ai/dsh-client-ui-sidebar-terminal'
+      disabled: true
     # The right Sidebar's workspace file tree tab type.
     - id: ui-sidebar-files
       name: '@deepseek-ai/dsh-client-ui-sidebar-files'
@@ -274,6 +278,7 @@
     # Without a profile-backed Host it reports itself unavailable.
     - id: ui-plugin-manager
       name: '@deepseek-ai/dsh-client-ui-plugin-manager'
+      disabled: true
 
     # Read-only Plugin list tab in the Settings Plugins section; the built-in
     # bundles the sidebar page leaves out are inspected here.

@@ -147,9 +147,9 @@ describe('renderBlocks over hand-built trees', () => {
 
   it('renders images with a null alt as an empty alt attribute', () => {
     const targets = createReferenceTargets()
-    targets.definitions.set('R', { type: 'definition', identifier: 'r', url: 'https://example.com/r.png' })
+    targets.definitions.set('R', { type: 'definition', identifier: 'r', url: `${window.location.origin}/r.png` })
     const container = renderNodes([
-      { type: 'paragraph', children: [{ type: 'image', url: 'https://example.com/x.png', alt: null }] },
+      { type: 'paragraph', children: [{ type: 'image', url: `${window.location.origin}/x.png`, alt: null }] },
       { type: 'paragraph', children: [{ type: 'imageReference', identifier: 'r', referenceType: 'full', alt: null }] },
     ], { ...makeContext(), targets })
     const images = [...container.querySelectorAll('img')]

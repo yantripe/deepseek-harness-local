@@ -17,9 +17,10 @@
       name: '@deepseek-ai/dsh-plugin-manager/tools'
       disabled: true
 
+    # Local deployment: no plugin installation from npm/git by default.
     - id: plugin-manager
       name: '@deepseek-ai/dsh-plugin-manager'
-      disabled: !!js "!ctx.get('profileContext')"
+      disabled: true
 
     - id: timer
       name: '@deepseek-ai/cordis-plugin-timer'
@@ -110,8 +111,10 @@
     # Supplying those profiles is exactly what the web Models page does. Which
     # adapters exist is composition; which providers run is the user's settings
     # document.
+    # Local deployment: no cloud provider adapters (OpenAI, Anthropic, ...) by default.
     - id: llm-pi-ai
       name: '@deepseek-ai/dsh-llm-pi-ai'
+      disabled: true
 
     - id: session-persistence-jsonl
       name: '@deepseek-ai/dsh-session-persistence-jsonl'
@@ -183,7 +186,8 @@
     - id: sandbox-policy
       name: '@deepseek-ai/dsh-sandbox-policy'
       config:
-        mode: !!js process.env.DSH_PERMISSION_MODE ?? 'workspace-write'
+        # Local deployment: the environment can only narrow to read-only, never widen to full access.
+        mode: !!js "process.env.DSH_PERMISSION_MODE === 'read-only' ? 'read-only' : 'workspace-write'"
         workspaceRoot: !!js process.cwd()
 
     - id: bash-sandbox
@@ -199,7 +203,7 @@
     - id: approval
       name: '@deepseek-ai/dsh-user-approval'
       config:
-        policy: !!js "(process.env.DSH_PERMISSION_MODE ?? 'workspace-write') === 'danger-full-access' ? 'never' : 'ask'"
+        policy: ask
 
     - id: permission
       name: '@deepseek-ai/dsh-permission-presets'
@@ -211,9 +215,6 @@
           workspace-write:
             sandbox: workspace-write
             approval: ask
-          danger-full-access:
-            sandbox: danger-full-access
-            approval: never
 
     - id: shell-env
       name: '@deepseek-ai/dsh-shell-env'
@@ -423,14 +424,16 @@
       config:
         fetchProvider: http
 
+    # Local deployment: no internet fetch provider by default.
     - id: web-fetch-http
       name: '@deepseek-ai/dsh-web-fetch-http'
+      disabled: true
 
     - id: tool-web
       name: '@deepseek-ai/dsh-tool-web'
       config:
         search: false
-        fetch: true
+        fetch: false
 
     - id: mcp-resources
       name: '@deepseek-ai/dsh-mcp-resources'

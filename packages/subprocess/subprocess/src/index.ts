@@ -47,9 +47,34 @@ export type {
 export const SENSITIVE_ENV_PATTERN = /KEY|PASSWORD|SECRET|TOKEN/i
 
 /**
- * The ambient parent environment minus credential-shaped names and minus all
- * `DSH_*` names — the canonical base every harness child starts from. `PATH`,
- * `HOME`, locale, and proxy variables survive, so child CLIs run normally;
+ * Local deployment: the only ambient names a child inherits. Everything else
+ * in the harness's own environment (service settings, model endpoint, any
+ * secret whose name does not look like one) stays in the parent; a child that
+ * needs more gets it through the spec's explicit `env`. Matched
+ * case-insensitively, like Windows environment names.
+ */
+const CHILD_ENV_ALLOWLIST = new Set([
+  // Both platforms
+  'PATH', 'TEMP', 'TMP', 'TZ', 'LANG', 'LANGUAGE', 'TERM', 'COLORTERM',
+  // Windows
+  'SYSTEMROOT', 'SYSTEMDRIVE', 'WINDIR', 'COMSPEC', 'PATHEXT', 'OS', 'USERPROFILE', 'USERNAME', 'USERDOMAIN',
+  'HOMEDRIVE', 'HOMEPATH', 'APPDATA', 'LOCALAPPDATA', 'PROGRAMDATA', 'PROGRAMFILES', 'PROGRAMFILES(X86)',
+  'PROGRAMW6432', 'COMMONPROGRAMFILES', 'COMMONPROGRAMFILES(X86)', 'COMMONPROGRAMW6432', 'PSMODULEPATH',
+  'PROCESSOR_ARCHITECTURE', 'NUMBER_OF_PROCESSORS', 'COMPUTERNAME', 'PUBLIC', 'ALLUSERSPROFILE',
+  // POSIX
+  'HOME', 'USER', 'LOGNAME', 'SHELL', 'TMPDIR',
+])
+const CHILD_ENV_ALLOWED_PREFIX = /^LC_/i
+
+function allowedChildEnvName(key: string): boolean {
+  return CHILD_ENV_ALLOWLIST.has(key.toUpperCase()) || CHILD_ENV_ALLOWED_PREFIX.test(key)
+}
+
+/**
+ * The allowlisted part of the ambient parent environment (system paths, user
+ * profile, locale), minus credential-shaped names and minus all `DSH_*`
+ * names — the canonical base every harness child starts from. `PATH`, `HOME`,
+ * locale, and resolved proxy variables survive, so child CLIs run normally;
  * harness identity never leaks implicitly (a deliberately forwarded
  * credential or current `DSH_*` fact goes through the spec's explicit `env`,
  * which merges after this scrub). Both scrubs match case-insensitively:
@@ -66,7 +91,7 @@ export const SENSITIVE_ENV_PATTERN = /KEY|PASSWORD|SECRET|TOKEN/i
 export function scrubbedParentEnv(): Record<string, string> {
   const env: Record<string, string> = {}
   for (const [key, value] of Object.entries(process.env)) {
-    if (value !== undefined && !SENSITIVE_ENV_PATTERN.test(key) && !key.toUpperCase().startsWith(DSH_ENV_PREFIX)) env[key] = value
+    if (value !== undefined && allowedChildEnvName(key) && !SENSITIVE_ENV_PATTERN.test(key) && !key.toUpperCase().startsWith(DSH_ENV_PREFIX)) env[key] = value
   }
   // A child Node ignores the inherited proxy variables unless the flag this adds is set, so an MCP
   // stdio server or subagent CLI would connect directly while its parent proxies. The same overlay

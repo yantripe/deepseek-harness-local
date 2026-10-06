@@ -55,5 +55,6 @@
     #text " b)"
   <p>
     <a href="https://example.com/target" rel="noopener noreferrer" target="_blank">
-      <img alt="linked badge" class="_image_404681" decoding="async" loading="lazy" referrerpolicy="no-referrer" src="https://example.com/badge.png">
+      <span class="_imageAlt_404681">
+        #text "linked badge"
     #text " image-only anchors carry no leading glyph."

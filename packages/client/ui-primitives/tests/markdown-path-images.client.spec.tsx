@@ -9,7 +9,7 @@ afterEach(cleanup)
 const LOCAL_IMAGE = '![diagram](/tmp/graph.png)'
 
 const mapping = (value: string): string | undefined =>
-  value === '/tmp/graph.png' ? 'https://cdn.example.com/graph.png' : undefined
+  value === '/tmp/graph.png' ? `${window.location.origin}/graph.png` : undefined
 
 describe('MarkdownText local-path images', () => {
   it('renders authored alt text when no path vocabulary exists', () => {
@@ -22,7 +22,7 @@ describe('MarkdownText local-path images', () => {
     const pathImages: MarkdownPathImages = { resolve: mapping }
     const { container } = render(<MarkdownText text={LOCAL_IMAGE} pathImages={pathImages} />)
     const image = container.querySelector('img')
-    expect(image?.getAttribute('src')).toBe('https://cdn.example.com/graph.png')
+    expect(image?.getAttribute('src')).toBe(`${window.location.origin}/graph.png`)
     expect(image?.getAttribute('alt')).toBe('diagram')
   })
 
@@ -37,14 +37,14 @@ describe('MarkdownText local-path images', () => {
   })
 
   it('loads a replacement destination after the preceding image failed', () => {
-    const pathImages: MarkdownPathImages = { resolve: value => `https://example.com${value}` }
+    const pathImages: MarkdownPathImages = { resolve: value => `${window.location.origin}${value}` }
     const { container, rerender } = render(
       <MarkdownText text={LOCAL_IMAGE} pathImages={pathImages} />,
     )
     fireEvent.error(screen.getByRole('img'))
     rerender(<MarkdownText text="![](/tmp/replacement.png)" pathImages={pathImages} />)
     expect(container.querySelector('img')?.getAttribute('src'))
-      .toBe('https://example.com/tmp/replacement.png')
+      .toBe(`${window.location.origin}/tmp/replacement.png`)
   })
 
   it('keeps the alt fallback when the vocabulary misses', () => {
@@ -90,10 +90,10 @@ describe('MarkdownText local-path images', () => {
   })
 
   it('leaves remote images untouched even when the vocabulary maps them', () => {
-    const remote = '![remote](https://example.com/a.png)'
-    const pathImages: MarkdownPathImages = { resolve: () => 'https://cdn.example.com/b.png' }
+    const remote = `![remote](${window.location.origin}/a.png)`
+    const pathImages: MarkdownPathImages = { resolve: () => `${window.location.origin}/b.png` }
     const { container } = render(<MarkdownText text={remote} pathImages={pathImages} />)
-    expect(container.querySelector('img')?.getAttribute('src')).toBe('https://example.com/a.png')
+    expect(container.querySelector('img')?.getAttribute('src')).toBe(`${window.location.origin}/a.png`)
   })
 
   it('rewrites reference-style local image destinations', () => {
@@ -101,7 +101,7 @@ describe('MarkdownText local-path images', () => {
     const pathImages: MarkdownPathImages = { resolve: mapping }
     const { container } = render(<MarkdownText text={reference} pathImages={pathImages} />)
     expect(container.querySelector('img')?.getAttribute('src'))
-      .toBe('https://cdn.example.com/graph.png')
+      .toBe(`${window.location.origin}/graph.png`)
   })
 
   it('applies the vocabulary only to settled renders, never while streaming', () => {
@@ -114,6 +114,6 @@ describe('MarkdownText local-path images', () => {
     expect(container.querySelector('img')).toBeNull()
     rerender(<MarkdownText text={LOCAL_IMAGE} pathImages={pathImages} />)
     expect(container.querySelector('img')?.getAttribute('src'))
-      .toBe('https://cdn.example.com/graph.png')
+      .toBe(`${window.location.origin}/graph.png`)
   })
 })

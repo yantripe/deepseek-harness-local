@@ -18,6 +18,34 @@ overrides:
   'extract-zip>yauzl': '3.4.0'
   '@deepseek-ai/cosmokit': 'link:vendor/cosmokit'
   '@deepseek-ai/schemastery': 'link:vendor/schemastery'
+  # Local deployment security audit (2026-10-06): lift every package with a
+  # high advisory to its fixed release, plus the moderate runtime ones.
+  'fast-uri@<3.1.8': '^3.1.8'
+  'js-yaml@>=4 <4.3.2': '^4.3.2'
+  'sharp@<0.35.4': '^0.35.4'
+  'undici@>=7 <7.29.1': '^7.29.1'
+  'undici@>=8 <8.10.2': '^8.10.2'
+  'nanoid@>=3 <3.3.18': '^3.3.18'
+  'postcss@<8.5.23': '^8.5.23'
+  'ip-address@<10.7.1': '^10.7.1'
+  'hono@<4.13.7': '^4.13.7'
+  '@hono/node-server@<1.19.15': '^1.19.15'
+  'qs@<6.16.0': '^6.16.0'
+  'protobufjs@>=7 <7.6.5': '^7.6.5'
+  'fflate@<0.8.3': '^0.8.3'
+  # build/test/packaging tool chain (not shipped in the running server, fixed anyway when a
+  # same-major fix exists)
+  'source-map-js@<1.2.2': '^1.2.2'
+  'brace-expansion@>=1 <1.1.21': '^1.1.21'
+  'brace-expansion@>=2 <2.1.7': '^2.1.7'
+  'brace-expansion@>=5 <5.0.12': '^5.0.12'
+  'http-cache-semantics@<4.2.1': '^4.2.1'
+  'browserslist@<4.28.7': '^4.28.7'
+  'baseline-browser-mapping@<2.11.0': '^2.11.0'
+  'undici@>=6 <6.28.1': '^6.28.1'
+  'smol-toml@<1.8.1': '^1.8.1'
+  'dompurify@<3.4.16': '^3.4.16'
+  'mermaid@<11.16.1': '^11.16.1'
 
 peerDependencyRules:
   allowedVersions:

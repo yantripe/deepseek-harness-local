@@ -163,11 +163,11 @@ async function initializeSecret(credentials: CredentialProvider): Promise<Buffer
     version: STORED_SECRET_VERSION,
     secret: encodeBase64Url(randomBytes(SECRET_BYTES)),
   }
+  // Local deployment: every activation replaces the signing secret, so a
+  // restart of the service revokes every browser login issued before it.
   const record = await credentials.modifyRecord(AUTH_RECORD_KEY, (current) => {
-    if (current !== undefined) {
-      storedSecret(current)
-      return Promise.resolve(undefined)
-    }
+    // A damaged record still fails loud rather than being silently replaced.
+    if (current !== undefined) storedSecret(current)
     return Promise.resolve({ kind: 'grant', payload: generated })
   })
   const secret = storedSecret(record)
@@ -200,8 +200,8 @@ export class BrowserAuth {
   }
 
   /**
-   * Initialize browser authentication and create its durable signing secret
-   * when this Harness home has none.
+   * Initialize browser authentication with a fresh signing secret; cookies
+   * issued by earlier activations stop verifying.
    * @param processOwner - root application context retaining one token across Connection reloads.
    * @param credentials - persistent credential provider for the Web profile.
    * @param maxAgeDays - positive absolute browser-cookie lifetime in days.

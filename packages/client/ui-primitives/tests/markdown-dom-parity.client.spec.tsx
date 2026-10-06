@@ -1,4 +1,6 @@
 // @vitest-environment jsdom
+// Local deployment: images from another origin render as their alt text (no <img>), so
+// the images/links fixtures intentionally differ from the original recording.
 // The fixture corpus is a DOM compatibility baseline; review diffs as
 // user-visible Markdown changes rather than regenerating them for refactors.
 // One intentional divergence from the original react-markdown recording:

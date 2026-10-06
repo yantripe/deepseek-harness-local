@@ -3,7 +3,7 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { Context, LoggerLevel, Service } from '@deepseek-ai/cordis'
 import LocalAttachments from '@deepseek-ai/dsh-attachment-local'
 import AgentRegistry, { installModelSelection } from '@deepseek-ai/dsh-agent'
@@ -26,6 +26,9 @@ import { object } from '../src/replay.ts'
 import { DeepSeekFileStore } from '../src/file-store.ts'
 import * as Messages from '@deepseek-ai/dsh-llm-deepseek-api-key'
 import { adapter, assemble, chunks, MODEL, options, server, sse, textEvents, user, sourceModuleLoader } from './helpers.ts'
+
+// Most cases talk to test servers on non-loopback names; the loopback guard has its own case.
+beforeEach(() => { vi.stubEnv('DSH_ALLOW_REMOTE_MODEL', '1') })
 
 const cleanup: (() => Promise<unknown>)[] = []
 afterEach(async () => {
@@ -261,6 +264,14 @@ describe('direct Messages HTTP', () => {
   it('rejects a successful response with no readable body', async () => {
     vi.stubGlobal('fetch', async () => new Response(null, { status: 200 }))
     await expect(chunks(adapter({ baseURL: 'https://provider.invalid' }).stream(options()))).rejects.toMatchObject({ code: 'EMPTY_RESPONSE' })
+  })
+
+  it('rejects a non-loopback endpoint unless remote models are allowed explicitly', async () => {
+    vi.stubEnv('DSH_ALLOW_REMOTE_MODEL', '')
+    const fetchImpl = vi.fn<typeof fetch>()
+    vi.stubGlobal('fetch', fetchImpl)
+    await expect(chunks(adapter({ baseURL: 'https://provider.invalid' }).stream(options()))).rejects.toMatchObject({ code: 'REMOTE_ENDPOINT_BLOCKED' })
+    expect(fetchImpl).not.toHaveBeenCalled()
   })
 
   it('rejects every request locally while no endpoint is configured', async () => {

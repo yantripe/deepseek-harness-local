@@ -1,8 +1,10 @@
 <div class="_markdown_404681">
   <p>
-    <img alt="https image" class="_image_404681" decoding="async" loading="lazy" referrerpolicy="no-referrer" src="https://example.com/secure.png">
+    <span class="_imageAlt_404681">
+      #text "https image"
   <p>
-    <img alt="http image" class="_image_404681" decoding="async" loading="lazy" referrerpolicy="no-referrer" src="http://example.com/plain.png">
+    <span class="_imageAlt_404681">
+      #text "http image"
   <p>
     <span class="_imageAlt_404681">
       #text "relative dropped"
@@ -11,4 +13,4 @@
       #text "bad scheme"
     #text " end."
   <p>
-    <img alt="" class="_image_404681" decoding="async" loading="lazy" referrerpolicy="no-referrer" src="https://example.com/empty-alt.png">
+    <span class="_imageAlt_404681">

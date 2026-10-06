@@ -28,4 +28,5 @@
   <p>
     #text "[missing full][nope], [missing collapsed][], ![missing image][gone]."
   <p>
-    <img alt="ref image" class="_image_404681" decoding="async" loading="lazy" referrerpolicy="no-referrer" src="https://example.com/ref.png">
+    <span class="_imageAlt_404681">
+      #text "ref image"
