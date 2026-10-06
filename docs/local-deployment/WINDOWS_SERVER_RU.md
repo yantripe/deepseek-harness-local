@@ -118,8 +118,8 @@ netsh winhttp reset proxy
 ```
 Исходящий трафик запрещён для всех процессов по умолчанию, включая дочерние процессы агента (A6, M6). Loopback (Harness ↔ Ollama) файрволом не фильтруется. Если серверу нужен доступ во внутреннюю сеть (домен, WSUS), добавлять **узкие разрешающие** правила для конкретных адресов и портов, не для `node.exe`/`ollama.exe`.
 
-Удалённый доступ — только SSH-туннель; порт 3080 не публиковать. **В стенде вход через туннель не проверен** (preview-сборка Win32-OpenSSH не запускается службой на русской Windows, см. README, «Известные ограничения») — используйте штатный компонент Windows и проверьте вход до передачи сотрудникам:
-1. На сервере OpenSSH Server: «Параметры → Система → Дополнительные компоненты → OpenSSH Server» (или официальный `OpenSSH-Win64.zip` с GitHub PowerShell/Win32-OpenSSH, сверить SHA-256, `install-sshd.ps1`). Вход — только по ключам (`PasswordAuthentication no` в `C:\ProgramData\ssh\sshd_config`).
+Удалённый доступ — только SSH-туннель; порт 3080 не публиковать. Проверено в стенде с официальным Win32-OpenSSH 9.5 (служба `sshd` от SYSTEM): у сотрудника нет оболочки, разрешён только проброс на `127.0.0.1:3080`. Если ставите из zip через сеанс без профиля, задайте `$env:TEMP = "$env:SystemRoot\Temp"` перед `install-sshd.ps1` (иначе он не компилирует вспомогательный тип).
+1. На сервере OpenSSH Server: «Параметры → Система → Дополнительные компоненты → OpenSSH Server» или официальный `OpenSSH-Win64.zip` (PowerShell/Win32-OpenSSH, проверенная версия v9.5.0.0p1-Beta, SHA-256 `bd48fe985d400402c278c485db20e6a82bc4c7f7d8e0ef5a81128f523096530c`) и его `install-sshd.ps1`. Вход — только по ключам (`PasswordAuthentication no` в `C:\ProgramData\ssh\sshd_config`).
 2. На компьютере сотрудника: `ssh -N -L 3080:127.0.0.1:3080 <учётка>@<сервер>`, затем в браузере `http://127.0.0.1:3080/?token=…`.
 4. Ограничить пользователя туннелем: в `sshd_config` — `AllowTcpForwarding local`, `PermitOpen 127.0.0.1:3080`, `PermitTTY no`, `ForceCommand cmd.exe /c echo tunnel-only`, `PasswordAuthentication no` (готовый пример — `scripts/ssh-tunnel-only.ps1`).
 5. Браузер сотрудника получает от Harness заголовок `Content-Security-Policy`: страницы интерфейса загружают картинки, скрипты, шрифты и соединения только с самого Harness. Картинки по внешним ссылкам из ответов модели не загружаются (A3, B1).
@@ -141,10 +141,6 @@ Stop-ScheduledTask DSH-Web; Stop-ScheduledTask DSH-Ollama; Disable-ScheduledTask
 ```
 Полное удаление: `Unregister-ScheduledTask DSH-Web,DSH-Ollama -Confirm:$false`; сохранить при необходимости `C:\dsh\home\sessions`; удалить `C:\dsh`; `Remove-LocalUser dshsvc`; `Get-NetFirewallRule -DisplayName 'DSH*' | Remove-NetFirewallRule`.
 
-## 10. Правило для операторов
-
-Если в интерфейсе агент просит **повысить права песочницы / полный доступ** — не одобрять. Механизм повышения в коде пока не отключён (README, «Известные ограничения»).
-
-## 11. Не включать
+## 10. Не включать
 
 MCP-серверы, плагины, `web_fetch`/поиск, `llm-pi-ai`, встроенный терминал, голосовой ввод, браузерных и внешних субагентов (Codex, Claude Code, ACP), `DSH_ALLOW_REMOTE_MODEL`.

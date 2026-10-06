@@ -30,6 +30,7 @@
 - веб-интерфейс отдаёт `Content-Security-Policy`: браузер, открывший интерфейс, не загружает картинки, шрифты, фреймы и не открывает соединения ни с чем, кроме самого Harness; картинки из ответов модели с чужих адресов не отображаются;
 - файловые инструменты агента не читают секреты и служебные файлы Harness (`$DSH_HOME/.env`, `.credentials.yaml`, `sessions`, `cordis.patch.yml` и пути из `DSH_PROTECTED_PATHS`);
 - дочерние процессы агента получают только переменные окружения из белого списка;
+- агент не может выйти из песочницы: повышение прав возможно только с «только чтение» до «запись в рабочую папку», «полный доступ» не запрашивается и не одобряется;
 - перезапуск веб-службы отзывает все ранее выданные входы в интерфейс;
 - зависимости обновлены: в production-зависимостях нет известных уязвимостей уровня high (на момент выпуска).
 
@@ -106,11 +107,10 @@ pnpm dsh web
 
 ## Известные ограничения
 
-- **Запрос «повышения прав» песочницы.** Если команда агента упирается в запрет, агент может попросить в интерфейсе выполнить её без песочницы. **Не одобряйте такие запросы** — при одобрении команда выполнится с правами службы. Отключение этого механизма в коде ещё не сделано.
 - Песочница на Windows ограничивает запись, но не чтение: агент читает файлы, доступные учётной записи службы. Служебные папки защищаются правами и метками целостности (см. инструкцию для сервера); не храните конфиденциальные данные в общедоступных местах (`C:\Users\Public`, корень диска).
 - Политика CSP разрешает `unsafe-eval` (нужно загрузчику плагинов интерфейса); внешние загрузки при этом запрещены.
 - Десктоп-приложение после удаления обновлений и аккаунта не проверялось.
-- Проверено: Windows 11 25H2 (сборка, офлайн-установка, сеть, права, отзыв входа, браузер на другом компьютере). Вход сотрудника через SSH-туннель на тестовом стенде не проверен.
+- Проверено на Windows 11 25H2: сборка в чистой ВМ и офлайн-установка (байт-в-байт), отсутствие исходящих соединений, права и метки, отказ агенту в чтении служебных файлов и в выходе из песочницы, отзыв входа, вход сотрудника через SSH-туннель (OpenSSH 9.5) и браузер на другом компьютере без единого внешнего запроса.
 
 ## Лицензия
 
@@ -125,8 +125,8 @@ MIT. © 2026 DeepSeek (оригинальный код), изменения — 
 
 - **Removed:** telemetry/analytics, anonymous user ID and identity headers, hidden request fields (session log, package inventory), feedback uploads, DeepSeek account and web search, desktop auto-updates, the default cloud endpoint.
 - **Off by default:** cloud model providers, plugin installation, web fetch/search, operator terminal, unconfined permission mode.
-- **Added:** loopback-only model endpoint (`REMOTE_ENDPOINT_BLOCKED` otherwise; opt out with `DSH_ALLOW_REMOTE_MODEL=1`), a Content-Security-Policy that keeps the viewing browser from contacting any other host, protected Harness files for agent file tools, an allowlisted child environment, login revocation on service restart, patched dependencies.
+- **Added:** no escalation out of the sandbox, loopback-only model endpoint (`REMOTE_ENDPOINT_BLOCKED` otherwise; opt out with `DSH_ALLOW_REMOTE_MODEL=1`), a Content-Security-Policy that keeps the viewing browser from contacting any other host, protected Harness files for agent file tools, an allowlisted child environment, login revocation on service restart, patched dependencies.
 
 Quick start: Node 22.19+/24, `corepack enable`, `pnpm install`, `pnpm run build`, run a local Messages-API model server (e.g. Ollama), put the `cordis.patch.yml` shown above into `$DSH_HOME`, set `DEEPSEEK_API_KEY` to any non-empty value and run `pnpm dsh web`.
 
-Known limitation: do **not** approve sandbox-escalation requests in the UI. Windows server hardening guide (Russian): [docs/local-deployment/WINDOWS_SERVER_RU.md](docs/local-deployment/WINDOWS_SERVER_RU.md).
+The agent cannot leave its sandbox: escalation only widens read-only to workspace-write. Windows server hardening guide (Russian): [docs/local-deployment/WINDOWS_SERVER_RU.md](docs/local-deployment/WINDOWS_SERVER_RU.md).

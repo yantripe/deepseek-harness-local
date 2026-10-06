@@ -1,16 +1,15 @@
-﻿# Round 2, test VM, Administrator: OpenSSH Server for tunnel-only remote access to the UI.
+# Server, Administrator: OpenSSH Server for tunnel-only remote access to the UI.
 # Employees log in with a key, get NO shell and may forward only to 127.0.0.1:3080.
 param([Parameter(Mandatory)] [string] $ZipPath, [Parameter(Mandatory)] [string] $ClientPublicKey, [string] $User = 'regular')
 $ErrorActionPreference = 'Stop'
+# Guest Additions sessions carry an unusable TEMP; install-sshd.ps1 compiles a helper type through it.
+$env:TEMP = $env:TMP = "$env:SystemRoot\Temp"
 $dir = 'C:\Program Files\OpenSSH'
 if (-not (Test-Path "$dir\sshd.exe")) {
   Expand-Archive $ZipPath 'C:\Program Files' -Force
   Rename-Item 'C:\Program Files\OpenSSH-Win64' 'OpenSSH'
 }
-# install-sshd.ps1 of this release fails to compile its helper type; register the service directly.
-if (-not (Get-Service sshd -ErrorAction SilentlyContinue)) {
-  New-Service -Name sshd -BinaryPathName "`"$dir\sshd.exe`"" -DisplayName 'OpenSSH SSH Server' -StartupType Automatic | Out-Null
-}
+& powershell -NoProfile -ExecutionPolicy Bypass -File "$dir\install-sshd.ps1" 2>&1 | Select-Object -Last 3
 New-Item -ItemType Directory -Force C:\ProgramData\ssh | Out-Null
 New-Item -ItemType Directory -Force C:\ProgramData\ssh\authorized_keys | Out-Null
 & "$dir\ssh-keygen.exe" -A 2>&1 | Out-Null
