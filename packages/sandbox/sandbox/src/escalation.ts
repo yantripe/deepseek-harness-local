@@ -26,8 +26,11 @@ import type { SandboxMode } from './index.ts'
  * registry-global while the effective mode is per-call truth.
  */
 export const WIDER_MODES: Record<string, readonly SandboxMode[]> = {
-  'read-only': ['workspace-write', 'danger-full-access'],
-  'workspace-write': ['danger-full-access'],
+  // Local deployment: nothing escalates out of the sandbox. A read-only call
+  // may ask to write inside the workspace; no call may ask for
+  // danger-full-access, so an operator approval can never unconfine a command.
+  'read-only': ['workspace-write'],
+  'workspace-write': [],
 }
 
 /**
@@ -38,7 +41,7 @@ export const WIDER_MODES: Record<string, readonly SandboxMode[]> = {
  * mode sits below it (a `danger-full-access` default would advertise nothing
  * while a narrower-switched session stays confined with no lever).
  */
-export const ESCALATION_TARGETS: readonly SandboxMode[] = ['workspace-write', 'danger-full-access']
+export const ESCALATION_TARGETS: readonly SandboxMode[] = ['workspace-write']
 
 /**
  * Validate the escalation argument pairing a tool schema cannot express:

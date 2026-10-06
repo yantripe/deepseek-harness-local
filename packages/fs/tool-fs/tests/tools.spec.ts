@@ -883,9 +883,16 @@ describe('sandbox escalation API (write/edit)', () => {
     const { ctx } = await setupConfining()
     for (const name of ['write', 'edit'] as const) {
       const props = fsSchema(ctx, name).parameters.properties
-      expect(props['sandbox_permissions']?.enum).toEqual(['workspace-write', 'danger-full-access'])
+      expect(props['sandbox_permissions']?.enum).toEqual(['workspace-write'])
       expect(props['justification']).toBeDefined()
     }
+  })
+
+  it('refuses danger-full-access as an escalation target before any approval or write', async () => {
+    const { ctx, fs } = await setupConfining()
+    const result = await call(ctx, 'write', { file_path: 'a.txt', content: 'x', sandbox_permissions: 'danger-full-access', justification: 'why' }, escalationAgent())
+    expect(text(result)).toContain('must be one of ["workspace-write"]')
+    expect(fs.stamped).toEqual([])
   })
 
   it('a plain write stamps the default mode with the calling session root', async () => {
@@ -926,7 +933,8 @@ describe('sandbox escalation API (write/edit)', () => {
     expect(text(result)).not.toContain('[sandbox:')
   })
 
-  it('an approved escalation stamps the granted mode onto that write', async () => {
+  // Local deployment: escalation to danger-full-access no longer exists (see dsh-sandbox WIDER_MODES).
+  it.skip('an approved escalation stamps the granted mode onto that write', async () => {
     const { ctx, fs } = await setupConfining({ approval: true })
     ctx.on('approval/request', () => Promise.resolve('allowed-once' as const))
     // Pass a signal so the escalation ask forwards it to the approval request
@@ -945,7 +953,7 @@ describe('sandbox escalation API (write/edit)', () => {
     }])
   })
 
-  it.each(['workspace-write', 'danger-full-access'] as const)('writes under repeated %s without approval', async (mode) => {
+  it.each(['workspace-write'] as const)('writes under repeated %s without approval', async (mode) => {
     const { ctx, fs } = await setupConfining()
     const result = await call(ctx, 'write', {
       file_path: 'a.txt', content: 'x', sandbox_permissions: mode, justification: 'use the current permissions',
@@ -956,7 +964,8 @@ describe('sandbox escalation API (write/edit)', () => {
     }])
   })
 
-  it('a rejected escalation fails closed with its own text and never mutates', async () => {
+  // Local deployment: escalation to danger-full-access no longer exists (see dsh-sandbox WIDER_MODES).
+  it.skip('a rejected escalation fails closed with its own text and never mutates', async () => {
     const { ctx, fs } = await setupConfining({ approval: true })
     ctx.on('approval/request', () => Promise.resolve('rejected' as const))
     const result = await call(ctx, 'edit', { file_path: 'a.txt', old_string: 'x', new_string: 'y', sandbox_permissions: 'danger-full-access', justification: 'the test needs it' }, escalationAgent())
@@ -965,14 +974,16 @@ describe('sandbox escalation API (write/edit)', () => {
     expect(fs.stamped).toEqual([])
   })
 
-  it('escalation without an approval service fails closed', async () => {
+  // Local deployment: escalation to danger-full-access no longer exists (see dsh-sandbox WIDER_MODES).
+  it.skip('escalation without an approval service fails closed', async () => {
     const { ctx } = await setupConfining()
     const result = await call(ctx, 'write', { file_path: 'a.txt', content: 'x', sandbox_permissions: 'danger-full-access', justification: 'why' }, escalationAgent())
     expect(result.isError).toBe(true)
     expect(text(result)).toContain('no approval service is composed')
   })
 
-  it('escalation with an approval service but no agent fails closed', async () => {
+  // Local deployment: escalation to danger-full-access no longer exists (see dsh-sandbox WIDER_MODES).
+  it.skip('escalation with an approval service but no agent fails closed', async () => {
     const { ctx } = await setupConfining({ approval: true })
     const result = await call(ctx, 'write', { file_path: 'a.txt', content: 'x', sandbox_permissions: 'danger-full-access', justification: 'why' })
     expect(result.isError).toBe(true)

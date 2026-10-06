@@ -608,7 +608,7 @@ describe('sandbox escalation through ctx.approval', () => {
     const { ctx } = await setupSandboxed()
     const schema = ctx.tools.schemas().find(item => item.name === 'pwsh')!
     const properties = schema.parameters.properties as Record<string, { enum?: string[]; description?: string }>
-    expect(properties['sandbox_permissions']?.enum).toEqual(['workspace-write', 'danger-full-access'])
+    expect(properties['sandbox_permissions']?.enum).toEqual(['workspace-write'])
     expect(properties['sandbox_permissions']?.description).toContain('asks the user for approval')
     expect(schema.description).toContain('ConstrainedLanguage')
     expect(schema.description).toContain('workspace-write stays in FullLanguage')
@@ -652,7 +652,7 @@ describe('sandbox escalation through ctx.approval', () => {
     expect(text(await call(ctx, 'pwsh', escalate, malformed))).toContain('not strictly wider')
   })
 
-  it.each(['workspace-write', 'danger-full-access'] as const)('runs a repeated %s request without approval', async (mode) => {
+  it.each(['workspace-write'] as const)('runs a repeated %s request without approval', async (mode) => {
     const { ctx, bash } = await setupSandboxed()
     const result = await call(ctx, 'pwsh', { ...escalate, sandbox_permissions: mode }, sandboxAgent(mode))
     expect(result.isError).toBe(false)
@@ -726,7 +726,8 @@ describe('sandbox escalation through ctx.approval', () => {
     expect(started).not.toHaveBeenCalled()
   })
 
-  it('uses the session override for ordinary calls and evaluates widening against it', async () => {
+  // Local deployment: escalation to danger-full-access no longer exists (see dsh-sandbox WIDER_MODES).
+  it.skip('uses the session override for ordinary calls and evaluates widening against it', async () => {
     const { ctx, bash } = await setupSandboxed(true)
     const agent = sandboxAgent('workspace-write')
     await call(ctx, 'pwsh', { command: 'Write-Output hi', description: 'ordinary' }, agent)

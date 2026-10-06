@@ -20,13 +20,13 @@ import type { EscalationApprover, EscalationOutcome } from '@deepseek-ai/dsh-san
 
 describe('the strictly-wider ladder', () => {
   it('read-only escalates to either wider mode; workspace-write only to full access', () => {
-    expect(WIDER_MODES['read-only']).toEqual(['workspace-write', 'danger-full-access'])
-    expect(WIDER_MODES['workspace-write']).toEqual(['danger-full-access'])
+    expect(WIDER_MODES['read-only']).toEqual(['workspace-write'])
+    expect(WIDER_MODES['workspace-write']).toEqual([])
     expect(WIDER_MODES['danger-full-access']).toBeUndefined()
   })
 
   it('the target enum is the closed set every session could escalate TO (read-only is the floor)', () => {
-    expect(ESCALATION_TARGETS).toEqual(['workspace-write', 'danger-full-access'])
+    expect(ESCALATION_TARGETS).toEqual(['workspace-write'])
   })
 })
 
