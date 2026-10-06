@@ -1,0 +1,66 @@
+# Server hardening layer for the cleaned DeepSeek Harness (audit 2026-10-02, round 2 2026-10-06).
+# Since round 2 the build itself ships these rows as defaults (packages/bundle/*); this layer
+# repeats them so the server stays locked even if a later build changes a default, and adds
+# the model route.
+# Install as $DSH_HOME/cordis.patch.yml (home layer: outranks profile and bundle layers).
+# Every row below is verified with `dsh --profile web --dump-config` and in the isolated VM run.
+
+# S6: no internet tools at this stage. Removing the only fetch provider takes the
+# network capability away from web_fetch regardless of what agent presets declare.
+- id: web-fetch-http
+  disabled: true
+# F8: without this row the model still sees an inert web_fetch tool (base/headless
+# profiles). Web-profile agent presets declare their own tool-web row; set
+# `fetch: false` there in packages/bundle/web-app/presets/*.patch.yml.
+- id: tool-web
+  disabled: true
+
+# S3: no cloud LLM routes. pi-ai is the multi-provider adapter (OpenAI, Anthropic,
+# OpenRouter, Bedrock, ...); without it the Models page cannot add a cloud provider.
+- id: llm-pi-ai
+  disabled: true
+
+# S5: no plugin installation from npm/git, and no npm registry ping from the UI.
+- id: plugin-manager
+  disabled: true
+- id: tool-plugin-manager
+  disabled: true
+- id: ui-plugin-manager
+  disabled: true
+
+# S1/S3: the only model route is the local Ollama Messages endpoint. The catalog
+# carries the model's real context so compaction triggers before the server overflows
+# (Ollama must run with OLLAMA_CONTEXT_LENGTH equal to contextWindow).
+- id: llm-deepseek
+  config:
+    baseURL: http://127.0.0.1:11434
+    reasoningEffort: 'off'
+    maxTokens: 4096
+    defaultContextWindow: 16384
+    models:
+      - id: qwen3:4b
+        name: Qwen3 4B (local Ollama)
+        contextWindow: 16384
+        maxTokens: 4096
+- id: agent-default-model
+  config:
+    provider: deepseek-official
+    model: qwen3:4b
+
+# R2-3: no operator terminal. It runs as the service account outside the agent sandbox.
+- id: terminal-controller
+  disabled: true
+- id: ui-sidebar-terminal
+  disabled: true
+
+# S12: the unconfined mode cannot be selected from the UI or /permission.
+- id: permission
+  config:
+    presets:
+      read-only:
+        sandbox: read-only
+        approval: ask
+      workspace-write:
+        sandbox: workspace-write
+        approval: ask
+    defaultPreset: workspace-write

@@ -1,77 +1,132 @@
-# DeepSeek Harness
+# DeepSeek Harness — Local Edition
 
-English | [中文](README.zh.md)
+Русский | [English below](#english)
 
-DeepSeek Harness (`dsh`) is an open-source agent harness developed by [DeepSeek AI](https://deepseek.com).
+Локальная сборка агентной среды [DeepSeek Harness](README.upstream.md) (`dsh`), подготовленная для работы **полностью на своём оборудовании**, с локальной моделью и без передачи данных во внешние сервисы.
 
-It is built on an **everything-is-a-plugin** architecture and powered by [Cordis](https://github.com/cordiverse/cordis), whose design is described in [_A Programming Paradigm for Spatiotemporal Composability_](https://arxiv.org/abs/2608.25512).
+> Неофициальная модификация. Не связана с DeepSeek и не поддерживается ими. Оригинальный проект — © DeepSeek, лицензия MIT (см. [LICENSE](LICENSE)); исходное описание сохранено в [README.upstream.md](README.upstream.md).
+> Проект в стадии developer preview: возможны несовместимые изменения. Прочитайте [SAFETY.md](SAFETY.md).
 
-Documentation: [https://deepseek-harness.github.io/deepseek-harness/](https://deepseek-harness.github.io/deepseek-harness/)
+## Чем отличается от оригинала
 
-## Developer preview
+**Удалено из кода** (нет даже возможности включить):
+- телеметрия и аналитика (OpenTelemetry, продуктовые события, телеметрия сессий);
+- постоянный анонимный ID пользователя и заголовки `x-deepseek-harness-*` в запросах к модели;
+- скрытые поля в запросах к модели: журнал сессии, список установленных пакетов;
+- отправка журналов сессий вместе с отзывом;
+- аккаунт DeepSeek, вход через их сайт, веб-поиск через их серверы;
+- автообновления и «обязательные обновления» десктоп-приложения;
+- адрес облака DeepSeek по умолчанию: без явно заданного адреса модели запрос не выполняется.
 
-DeepSeek Harness is in _developer preview_ and iterating rapidly. **THERE WILL BE COMPATIBILITY-BREAKING CHANGES.**
+**Выключено по умолчанию** (включается только явной настройкой):
+- облачные провайдеры моделей (OpenAI, Anthropic, OpenRouter и др.);
+- установка плагинов из npm/git;
+- загрузка веб-страниц и веб-поиск для агента;
+- встроенный терминал оператора (работает вне песочницы агента);
+- режим «полный доступ» без песочницы.
 
-Review the [safety notice](SAFETY.md) before running the project.
+**Добавлено:**
+- запросы к модели — **только на этот же компьютер** (`127.0.0.1`, `::1`, `localhost`); другой адрес → ошибка `REMOTE_ENDPOINT_BLOCKED` (осознанно разрешается `DSH_ALLOW_REMOTE_MODEL=1`);
+- веб-интерфейс отдаёт `Content-Security-Policy`: браузер, открывший интерфейс, не загружает картинки, шрифты, фреймы и не открывает соединения ни с чем, кроме самого Harness; картинки из ответов модели с чужих адресов не отображаются;
+- файловые инструменты агента не читают секреты и служебные файлы Harness (`$DSH_HOME/.env`, `.credentials.yaml`, `sessions`, `cordis.patch.yml` и пути из `DSH_PROTECTED_PATHS`);
+- дочерние процессы агента получают только переменные окружения из белого списка;
+- перезапуск веб-службы отзывает все ранее выданные входы в интерфейс;
+- зависимости обновлены: в production-зависимостях нет известных уязвимостей уровня high (на момент выпуска).
 
-## Run
+Полный список изменений — история коммитов этого репозитория (первый коммит — оригинальный код без изменений).
 
-### Run from `npm`
+## Требования
 
-Install `Node.js`, then run:
+- Windows 11, macOS 13+ или Linux; 8 ГБ ОЗУ и больше (зависит от модели).
+- [Node.js](https://nodejs.org) 22.19+ или 24 LTS; pnpm 11.7 (через `corepack`).
+- Git; на macOS/Linux — компилятор C (`xcode-select --install` / `build-essential`).
+- Локальный сервер модели с API **Anthropic Messages** (`/v1/messages`): например [Ollama](https://ollama.com) или llama.cpp `llama-server`.
+
+## Быстрый старт (один компьютер)
 
 ```sh
-npx @deepseek-ai/dsh web
-```
-
-The command starts the Web UI at `http://127.0.0.1:3080` by default and opens it in the default browser for a local launch. An SSH launch only prints the host URL because the SSH client or editor owns the local forwarded address. Pass `--no-open` to run the server without opening a browser. See [Web UI guide](docs/user/guide/index.md).
-
-### Run from source
-
-To run from a repository checkout:
-
-```sh
-git clone https://github.com/deepseek-ai/deepseek-harness.git
-cd deepseek-harness
+git clone <адрес этого репозитория> deepseek-harness-local
+cd deepseek-harness-local
+corepack enable          # на Windows — от администратора, на macOS — sudo corepack enable
 pnpm install
 pnpm run build
+```
+
+Запустите модель, например:
+```sh
+ollama pull qwen3:4b
+```
+
+Создайте папку настроек Harness (например `~/.dsh` или любую, указанную в `DSH_HOME`) и файл `cordis.patch.yml` в ней:
+
+```yaml
+- id: llm-deepseek
+  config:
+    baseURL: http://127.0.0.1:11434
+    reasoningEffort: 'off'
+    defaultContextWindow: 16384
+    models:
+      - id: qwen3:4b
+        name: Qwen3 4B (local)
+        contextWindow: 16384
+        maxTokens: 4096
+- id: agent-default-model
+  config:
+    provider: deepseek-official
+    model: qwen3:4b
+```
+
+Запуск веб-интерфейса:
+```sh
+# ключ проверяется только на непустоту; локальной модели он не нужен
+export DEEPSEEK_API_KEY=local-model         # Windows PowerShell: $env:DEEPSEEK_API_KEY='local-model'
 pnpm dsh web
 ```
+Откроется `http://127.0.0.1:3080/?token=…` (ссылка одноразовая и выдаётся заново при каждом запуске).
 
-`pnpm run build` prepares the repository artifacts. `pnpm dsh web` uses those built artifacts without rebuilding.
+Проверить итоговую конфигурацию: `pnpm dsh --profile web --dump-config`.
 
-## Community and support
+## Развёртывание на сервере (Windows)
 
-- Submit feedback or bug reports through [GitHub Discussions](https://github.com/deepseek-ai/deepseek-harness/discussions).
-- Add the [`dsh-plugin`](https://github.com/topics/dsh-plugin) topic to your plugin repository for discoverability.
-- Join <a href="https://discord.gg/4MrtZUhpxg">DeepSeek Harness Discord community</a>.
+Пошаговая инструкция с усилением защиты — [docs/local-deployment/WINDOWS_SERVER_RU.md](docs/local-deployment/WINDOWS_SERVER_RU.md):
+сборка в отдельной чистой ВМ → перенос архивов → офлайн-установка по lockfile → служебная учётная запись, права и метки целостности, файрвол «исходящие запрещены», службы с явным окружением, доступ сотрудников только через SSH-туннель.
 
-## Contributing
+Готовые файлы: [docs/local-deployment/config](docs/local-deployment/config) (патч сервера, скрипты запуска), [docs/local-deployment/scripts](docs/local-deployment/scripts) (сборка, настройка сервера, SSH «только туннель», проверка на Mac).
 
-See [CONTRIBUTING.md](CONTRIBUTING.md).
+## Переменные окружения
 
-## Development
+| Переменная | Назначение |
+|---|---|
+| `DSH_HOME` | папка настроек, истории и учётных данных Harness (по умолчанию `~/.dsh`) |
+| `DEEPSEEK_API_KEY` | любое непустое значение для локальной модели |
+| `DEEPSEEK_BASE_URL` | адрес модели, если не задан в `cordis.patch.yml` |
+| `DSH_PROTECTED_PATHS` | дополнительные пути, недоступные файловым инструментам агента (`;` на Windows, `:` на macOS/Linux) |
+| `DSH_ALLOW_REMOTE_MODEL=1` | разрешить адрес модели не на этом компьютере (по умолчанию запрещено) |
+| `DSH_PERMISSION_MODE=read-only` | сузить права агента до «только чтение» (расширить через переменную нельзя) |
 
-Start with the [development guide](docs/development.md) and [architecture documentation](docs/architecture.md).
+## Известные ограничения
 
-`pnpm run dev:web` builds, serves, and rebuilds client bundles on source edits in one terminal, and `make help` lists the matching Make targets for Web and Desktop; the guide's application commands section owns the full table.
+- **Запрос «повышения прав» песочницы.** Если команда агента упирается в запрет, агент может попросить в интерфейсе выполнить её без песочницы. **Не одобряйте такие запросы** — при одобрении команда выполнится с правами службы. Отключение этого механизма в коде ещё не сделано.
+- Песочница на Windows ограничивает запись, но не чтение: агент читает файлы, доступные учётной записи службы. Служебные папки защищаются правами и метками целостности (см. инструкцию для сервера); не храните конфиденциальные данные в общедоступных местах (`C:\Users\Public`, корень диска).
+- Политика CSP разрешает `unsafe-eval` (нужно загрузчику плагинов интерфейса); внешние загрузки при этом запрещены.
+- Десктоп-приложение после удаления обновлений и аккаунта не проверялось.
+- Проверено: Windows 11 25H2 (сборка, офлайн-установка, сеть, права, отзыв входа, браузер на другом компьютере). Вход сотрудника через SSH-туннель на тестовом стенде не проверен.
 
-For agents, follow [AGENTS.md](AGENTS.md).
+## Лицензия
 
-## Citation
+MIT. © 2026 DeepSeek (оригинальный код), изменения — участники этого репозитория. Сторонние компоненты — [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
 
-```bibtex
-@misc{deepseek-harness2026,
-  title={DeepSeek Harness: Everything is a Plugin},
-  author={DeepSeek-AI},
-  year={2026},
-  publisher={GitHub},
-  howpublished={\url{https://github.com/deepseek-ai/deepseek-harness}},
-}
-```
+---
 
-## License
+<a id="english"></a>
+## English
 
-[MIT](LICENSE)
+**DeepSeek Harness — Local Edition** is an unofficial fork of [DeepSeek Harness](README.upstream.md) prepared to run entirely on your own hardware with a local model, sending nothing to DeepSeek or other external services. Not affiliated with or endorsed by DeepSeek.
 
-Third-party dependencies and their licenses are disclosed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).
+- **Removed:** telemetry/analytics, anonymous user ID and identity headers, hidden request fields (session log, package inventory), feedback uploads, DeepSeek account and web search, desktop auto-updates, the default cloud endpoint.
+- **Off by default:** cloud model providers, plugin installation, web fetch/search, operator terminal, unconfined permission mode.
+- **Added:** loopback-only model endpoint (`REMOTE_ENDPOINT_BLOCKED` otherwise; opt out with `DSH_ALLOW_REMOTE_MODEL=1`), a Content-Security-Policy that keeps the viewing browser from contacting any other host, protected Harness files for agent file tools, an allowlisted child environment, login revocation on service restart, patched dependencies.
+
+Quick start: Node 22.19+/24, `corepack enable`, `pnpm install`, `pnpm run build`, run a local Messages-API model server (e.g. Ollama), put the `cordis.patch.yml` shown above into `$DSH_HOME`, set `DEEPSEEK_API_KEY` to any non-empty value and run `pnpm dsh web`.
+
+Known limitation: do **not** approve sandbox-escalation requests in the UI. Windows server hardening guide (Russian): [docs/local-deployment/WINDOWS_SERVER_RU.md](docs/local-deployment/WINDOWS_SERVER_RU.md).
