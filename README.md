@@ -31,10 +31,14 @@
 - файловые инструменты агента не читают секреты и служебные файлы Harness (`$DSH_HOME/.env`, `.credentials.yaml`, `sessions`, `cordis.patch.yml` и пути из `DSH_PROTECTED_PATHS`);
 - дочерние процессы агента получают только переменные окружения из белого списка;
 - агент не может выйти из песочницы: повышение прав возможно только с «только чтение» до «запись в рабочую папку», «полный доступ» не запрашивается и не одобряется;
+- на macOS песочница команд агента (Seatbelt) запрещает исходящие сетевые соединения и чтение служебных файлов Harness (осознанно снимается `DSH_ALLOW_AGENT_NETWORK=1` — только сеть);
+- адаптер модели работает и с llama.cpp (`llama-server`), не только с Ollama;
 - перезапуск веб-службы отзывает все ранее выданные входы в интерфейс;
 - зависимости обновлены: в production-зависимостях нет известных уязвимостей уровня high (на момент выпуска).
 
 Полный список изменений — история коммитов этого репозитория (первый коммит — оригинальный код без изменений).
+
+**Проверка.** Сборка испытана на Windows-сервере (изолированные ВМ, браузер сотрудника через SSH-туннель) и на Mac (Intel, macOS 13, llama.cpp): все проверки пройдены. Отчёт — [docs/report](docs/report) (PDF «Итог» и подробный отчёт с ожиданием и фактом по каждой проверке).
 
 ## Требования
 
@@ -103,6 +107,7 @@ pnpm dsh web
 | `DEEPSEEK_BASE_URL` | адрес модели, если не задан в `cordis.patch.yml` |
 | `DSH_PROTECTED_PATHS` | дополнительные пути, недоступные файловым инструментам агента (`;` на Windows, `:` на macOS/Linux) |
 | `DSH_ALLOW_REMOTE_MODEL=1` | разрешить адрес модели не на этом компьютере (по умолчанию запрещено) |
+| `DSH_ALLOW_AGENT_NETWORK=1` | macOS: разрешить командам агента выход в сеть (по умолчанию запрещено) |
 | `DSH_PERMISSION_MODE=read-only` | сузить права агента до «только чтение» (расширить через переменную нельзя) |
 
 ## Известные ограничения
@@ -125,7 +130,7 @@ MIT. © 2026 DeepSeek (оригинальный код), изменения — 
 
 - **Removed:** telemetry/analytics, anonymous user ID and identity headers, hidden request fields (session log, package inventory), feedback uploads, DeepSeek account and web search, desktop auto-updates, the default cloud endpoint.
 - **Off by default:** cloud model providers, plugin installation, web fetch/search, operator terminal, unconfined permission mode.
-- **Added:** no escalation out of the sandbox, loopback-only model endpoint (`REMOTE_ENDPOINT_BLOCKED` otherwise; opt out with `DSH_ALLOW_REMOTE_MODEL=1`), a Content-Security-Policy that keeps the viewing browser from contacting any other host, protected Harness files for agent file tools, an allowlisted child environment, login revocation on service restart, patched dependencies.
+- **Added:** no escalation out of the sandbox, loopback-only model endpoint (`REMOTE_ENDPOINT_BLOCKED` otherwise; opt out with `DSH_ALLOW_REMOTE_MODEL=1`), a Content-Security-Policy that keeps the viewing browser from contacting any other host, protected Harness files for agent file tools, an allowlisted child environment, login revocation on service restart, patched dependencies; on macOS the Seatbelt profile denies outbound network and reads of Harness secrets for agent commands; tool calls work with llama.cpp. Test report: [docs/report](docs/report).
 
 Quick start: Node 22.19+/24, `corepack enable`, `pnpm install`, `pnpm run build`, run a local Messages-API model server (e.g. Ollama), put the `cordis.patch.yml` shown above into `$DSH_HOME`, set `DEEPSEEK_API_KEY` to any non-empty value and run `pnpm dsh web`.
 

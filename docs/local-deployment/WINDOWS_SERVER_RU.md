@@ -24,7 +24,7 @@
    powershell -ExecutionPolicy Bypass -File C:\b\build-in-clean-vm.ps1 -SourceZip C:\b\<архив>.zip -Commit <полный хэш коммита>
    ```
    Скрипт: скачивает Node.js 24 LTS и сверяет его SHA-256 с `SHASUMS256.txt` nodejs.org; включает pnpm 11.7 через corepack; распаковывает исходники в `C:\dsh\harness` (тот же путь, что на сервере); `pnpm install`; `pnpm audit`; `pnpm run build`; тесты изменённых пакетов; манифест SHA-256 всех файлов сборки.
-3. Проверить в выводе: `vitest exit 0`; в аудите `high: 0`, `critical: 0` для production-зависимостей.
+3. Проверить в выводе: тесты прошли (тесты `sandbox-windows-acl/runner.spec.ts` запускают PowerShell 7 — без `pwsh` в ВМ они падают с «файл не найден», на сборку это не влияет); в аудите `high: 0`, `critical: 0` для production-зависимостей. Сборочной ВМ нужно не меньше 6 ГБ памяти.
 4. Забрать из `C:\b\xfer`: `harness-build.tar`, `pnpm-store.zip` (хранилище pnpm пакуется .NET ZipFile — встроенный `tar` Windows с ним не справляется), `node.tar`, `manifest.sha256`, `SHA256SUMS.txt`, `pnpm-audit-*.json`, `tests.log`, `build.log`.
 5. Ollama: официальный `ollama-windows-amd64.zip` с GitHub, сверить SHA-256 с опубликованным; модель скачать здесь же (`ollama pull <модель>`) и перенести папку моделей. Для удалённого доступа — OpenSSH Server (см. шаг 7).
 
@@ -50,6 +50,8 @@ New-Item -ItemType Directory -Force C:\dsh | Out-Null
 tar -xf C:\xfer\node.tar -C C:\dsh; tar -xf C:\xfer\harness-build.tar -C C:\dsh
 New-Item -ItemType Directory -Force C:\dsh\pnpm-store | Out-Null
 Add-Type -AssemblyName System.IO.Compression.FileSystem; [IO.Compression.ZipFile]::ExtractToDirectory('C:\xfer\pnpm-store.zip', 'C:\dsh\pnpm-store')
+# при ОБНОВЛЕНИИ уже установленного сервера: распаковать поверх, заменив и индекс хранилища v11\index.db
+# (иначе pnpm не увидит новые пакеты: ERR_PNPM_NO_OFFLINE_TARBALL)
 # 3.3 зависимости строго по lockfile из локального хранилища, без сети
 $env:Path = "C:\dsh\node;$env:Path"; $env:COREPACK_HOME = 'C:\dsh\corepack'; $env:COREPACK_ENABLE_NETWORK = '0'; $env:CI = '1'
 # онлайн-проверка подписей уже выполнена в чистой ВМ; без этих переменных pnpm 11 бесконечно повторяет запросы к registry

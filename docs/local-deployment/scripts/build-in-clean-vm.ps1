@@ -63,8 +63,12 @@ Step 'Dependency audit'
 & node -e "for (const f of ['prod','all']) { const j=require('C:/b/out/pnpm-audit-'+f+'.json'); console.log(f, JSON.stringify(j.metadata?.vulnerabilities)) }"
 
 Step 'Build'
+# The type-check of all packages needs more than node's default heap on a small VM (6 GB RAM recommended).
+$env:NODE_OPTIONS = '--max-old-space-size=4096'
 & pnpm run build 2>&1 | Tee-Object "$out\build.log" | Select-Object -Last 15
-if ($LASTEXITCODE -ne 0) { throw "build failed ($LASTEXITCODE)" }
+$buildExit = $LASTEXITCODE
+Remove-Item Env:\NODE_OPTIONS
+if ($buildExit -ne 0) { throw "build failed ($buildExit)" }
 
 if ($UpdateMarkdownFixtures) {
   Step 'Re-record markdown DOM parity fixtures (cross-origin images now render as alt text)'
@@ -97,9 +101,22 @@ Copy-Item -Recurse -Force $nodeDir C:\b\node
 & tar -cf "$x\harness-build.tar" -C C:\dsh --exclude node_modules harness
 $storeRoot = Split-Path (((& pnpm store path) | Select-Object -Last 1).Trim()) -Parent
 "pnpm store: $storeRoot"
-# Windows tar cannot pack the pnpm store; .NET ZipFile can (the dangling v11\projects links are not needed offline).
-Add-Type -AssemblyName System.IO.Compression.FileSystem
-try { [IO.Compression.ZipFile]::CreateFromDirectory($storeRoot, "$x\pnpm-store.zip", [IO.Compression.CompressionLevel]::Fastest, $false) } catch { "zip note: $($_.Exception.Message)" }
+# Windows tar cannot pack the pnpm store, and ZipFile.CreateFromDirectory stops at the first dangling
+# v11\projects link (leaving an incomplete zip). Pack file by file and skip links (not needed offline).
+Add-Type -AssemblyName System.IO.Compression, System.IO.Compression.FileSystem
+$zip = [IO.Compression.ZipFile]::Open("$x\pnpm-store.zip", 'Create'); $packed = 0; $skipped = 0
+$stack = [Collections.Generic.Stack[string]]::new(); $stack.Push($storeRoot)
+while ($stack.Count) {
+  $d = $stack.Pop()
+  try { $entries = [IO.Directory]::GetFileSystemEntries($d) } catch { $skipped++; continue }
+  foreach ($p in $entries) {
+    $attr = [IO.File]::GetAttributes($p)
+    if ($attr -band [IO.FileAttributes]::ReparsePoint) { $skipped++; continue }
+    if ($attr -band [IO.FileAttributes]::Directory) { $stack.Push($p); continue }
+    try { [void][IO.Compression.ZipFileExtensions]::CreateEntryFromFile($zip, $p, $p.Substring($storeRoot.Length + 1).Replace('\', '/'), 'Fastest'); $packed++ } catch { $skipped++ }
+  }
+}
+$zip.Dispose(); "pnpm store zip: $packed files, $skipped links skipped"
 & tar -cf "$x\node.tar" -C C:\b node corepack
 Copy-Item "$out\*" $x -Force
 Get-ChildItem $x | ForEach-Object { '{0,-24} {1,12:N0}  {2}' -f $_.Name, $_.Length, (Get-FileHash $_.FullName).Hash } | Tee-Object "$x\SHA256SUMS.txt"
