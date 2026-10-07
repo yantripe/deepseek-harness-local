@@ -39,6 +39,8 @@ let testHome: string
 beforeEach(() => {
   testHome = mkdtempSync(join(tmpdir(), 'dsh-llm-deepseek-'))
   vi.stubEnv('DSH_HOME', testHome)
+  // Local edition: these upstream cases talk to non-loopback test names; the loopback guard is tested in adapter.spec.ts.
+  vi.stubEnv('DSH_ALLOW_REMOTE_MODEL', '1')
 })
 
 afterEach(async () => {

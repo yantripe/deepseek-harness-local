@@ -727,7 +727,8 @@ describe('task admission and package contracts', () => {
 
 describe('official spawn projection', () => {
   it('forwards command, arguments, cwd, environment, and signal exactly', () => {
-    vi.stubEnv('SDK_REMOVED_AMBIENT', 'ambient-value')
+    // Local edition: only allowlisted ambient names survive scrubbing, so the tombstone case uses an LC_ name.
+    vi.stubEnv('LC_SDK_REMOVED_AMBIENT', 'ambient-value')
     const signal = new AbortController().signal
     const options = sdkSpawnOptions({
       command: '/official/claude',
@@ -740,7 +741,7 @@ describe('official spawn projection', () => {
       A: 'one',
       B: undefined,
       C: 'three',
-      SDK_REMOVED_AMBIENT: undefined,
+      LC_SDK_REMOVED_AMBIENT: undefined,
     }))
     const spawnSpec = claudeSpawnSpec(options, 321)
     expect(spawnSpec).toMatchObject({
@@ -754,7 +755,7 @@ describe('official spawn projection', () => {
       A: 'one',
       B: undefined,
       C: 'three',
-      SDK_REMOVED_AMBIENT: undefined,
+      LC_SDK_REMOVED_AMBIENT: undefined,
     }))
     const missingCwd = sdkSpawnOptions()
     delete missingCwd.cwd

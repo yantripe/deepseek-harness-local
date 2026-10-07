@@ -44,6 +44,8 @@ beforeAll(() => {
   home = mkdtempSync(join(tmpdir(), 'dsh-deepseek-egress-'))
   vi.stubEnv('DSH_HOME', home)
   vi.stubEnv('DEEPSEEK_API_KEY', 'probe-key')
+  // Local edition: these upstream cases talk to non-loopback test names; the loopback guard is tested in adapter.spec.ts.
+  vi.stubEnv('DSH_ALLOW_REMOTE_MODEL', '1')
 })
 afterAll(() => {
   vi.unstubAllEnvs()

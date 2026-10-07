@@ -1,5 +1,5 @@
 /** Messages file-reference admission, bounded recovery and request-wide inline fallback. */
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { AttachmentId, ImageVariantId } from '@deepseek-ai/dsh-attachment'
 import type { ImageAttachmentRef, RequestImageAttachment } from '@deepseek-ai/dsh-attachment'
 import { createAssistantMessage, createToolResultMessage, LlmError, ToolCallId } from '@deepseek-ai/dsh-llm'
@@ -42,7 +42,9 @@ function harness(config: Config = {}) {
   })
   return { adapter, ensureUploaded, invalidate, readImageRequest }
 }
-afterEach(() => { vi.unstubAllGlobals() })
+// Local edition: these upstream cases talk to non-loopback test names; the loopback guard is tested in adapter.spec.ts.
+beforeEach(() => { vi.stubEnv('DSH_ALLOW_REMOTE_MODEL', '1') })
+afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs() })
 
 describe('Messages Files requests', () => {
   it('keeps nested tool-result images in order and sends only Files ids with the beta header', async () => {
