@@ -53,7 +53,8 @@ function startBlock(event: Record<string, unknown>, index: number): Block {
       replay = { type: 'reasoning', ...native.signature === undefined ? {} : { signature: string(native.signature) } }
       break
     case 'tool_use':
-      content = { type: 'tool-call', id: ToolCallId(string(native.id)), name: string(native.name), arguments: JSON.stringify(object(native.input)) }
+      // llama.cpp omits the initial input and sends all arguments as JSON deltas; message_stop still validates them.
+      content = { type: 'tool-call', id: ToolCallId(string(native.id)), name: string(native.name), arguments: native.input === undefined ? '{}' : JSON.stringify(object(native.input)) }
       if (!content.id || !content.name) return malformed('empty tool identity')
       replay = { type: 'tool-call' }
       break

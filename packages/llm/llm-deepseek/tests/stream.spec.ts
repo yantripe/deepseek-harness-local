@@ -46,6 +46,14 @@ describe('Messages stream', () => {
     expect(result.message.content[0]).toMatchObject({ arguments: JSON.stringify(input) })
   })
 
+  it('accepts a tool start without input when the arguments arrive as JSON deltas (llama.cpp)', async () => {
+    const result = await assemble(translate(events([start,
+      { type: 'content_block_start', index: 0, content_block: { type: 'tool_use', id: 'a', name: 'bash' } },
+      { type: 'content_block_delta', index: 0, delta: { type: 'input_json_delta', partial_json: '{"command": "echo hi"}' } },
+      { type: 'content_block_stop', index: 0 }, ...end('tool_use')]), MODEL))
+    expect(result.message.content[0]).toMatchObject({ type: 'tool-call', name: 'bash', arguments: '{"command": "echo hi"}' })
+  })
+
   it('preserves signature-only thinking and prunes truncated tools with their replay entries', async () => {
     const result = await assemble(translate(events([start,
       { type: 'content_block_start', index: 0, content_block: { type: 'thinking', thinking: '' } },

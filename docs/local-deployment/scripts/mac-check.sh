@@ -29,7 +29,8 @@ if curl -s -m 5 "http://127.0.0.1:$PORT/" >/dev/null; then say "model server ans
 
 step "2. Unpack, install, build"
 mkdir -p "$HOME/dsh"; rm -rf "$HOME/dsh/harness"
-run unzip -q "$ZIP" -d "$HOME/dsh/harness" || exit 1
+# ditto, not unzip: the stock macOS unzip fails on non-ASCII file names in the archive.
+run ditto -x -k "$ZIP" "$HOME/dsh/harness" || exit 1
 cd "$HOME/dsh/harness" || exit 1
 # The build stamps the commit hash; the archive name ends with it (…-src-<hash>.zip).
 export DSH_CLIENT_COMMIT_HASH="$(basename "$ZIP" .zip | grep -oE '[0-9a-f]{7,40}$')"
