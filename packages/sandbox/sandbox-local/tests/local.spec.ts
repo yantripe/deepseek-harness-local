@@ -20,7 +20,7 @@ import {
   LocalSandboxProvider,
 } from '@deepseek-ai/dsh-sandbox-local'
 import type { Config } from '@deepseek-ai/dsh-sandbox-local'
-import { bwrapProfileArgs, landlockProfileArgs, seatbeltProfileArgs } from '../src/profiles.ts'
+import { bwrapProfileArgs, landlockProfileArgs, protectedReadPaths, seatbeltProfileArgs } from '../src/profiles.ts'
 
 const RO: SandboxPolicy = { mode: 'read-only', workspaceRoot: '/ws' }
 const WW: SandboxPolicy = { mode: 'workspace-write', workspaceRoot: '/ws' }
@@ -72,6 +72,11 @@ function fakeSeatbeltExec(status: number): string {
 /** The seatbelt read-only profile — every seatbelt profile starts with these forms. */
 const SEATBELT_RO_PROFILE = '(version 1) (allow default) (deny file-write*) (allow file-write* (literal "/dev/null"))'
 
+/** The local-edition denials every seatbelt profile ends with: protected Harness paths, then outbound IP. */
+function seatbeltDenials(): string {
+  return `(deny file-read* file-write* ${protectedReadPaths().map(path => `(subpath "${path}")`).join(' ')}) (deny network-outbound (remote ip))`
+}
+
 describe('profile dialects', () => {
   it('bwrap read-only: whole tree read-only with fresh /dev and private PID-scoped /proc, no writable mounts', () => {
     expect(bwrapProfileArgs(RO)).toEqual(['--ro-bind', '/', '/', '--dev', '/dev', '--unshare-pid', '--proc', '/proc', '--die-with-parent'])
@@ -95,7 +100,7 @@ describe('profile dialects', () => {
   })
 
   it('seatbelt read-only: allow-default with every file write denied except the /dev/null literal', () => {
-    expect(seatbeltProfileArgs(RO)).toEqual(['-p', SEATBELT_RO_PROFILE])
+    expect(seatbeltProfileArgs(RO)).toEqual(['-p', `${SEATBELT_RO_PROFILE} ${seatbeltDenials()}`])
   })
 
   it('seatbelt workspace-write: one more allow for the canonicalized workspace root, /tmp, and the user temp dir', () => {
@@ -106,7 +111,7 @@ describe('profile dialects', () => {
     // where they resolve to the same directory.
     const roots = [...new Set(['/ws', realpathSync('/tmp'), realpathSync(tmpdir())])]
     const allow = `(allow file-write* ${roots.map(root => `(subpath "${root}")`).join(' ')})`
-    expect(seatbeltProfileArgs(WW)).toEqual(['-p', `${SEATBELT_RO_PROFILE} ${allow}`])
+    expect(seatbeltProfileArgs(WW)).toEqual(['-p', `${SEATBELT_RO_PROFILE} ${allow} ${seatbeltDenials()}`])
   })
 
   it('seatbelt workspace-write dedups a workspace root that already IS the temp dir', () => {
@@ -114,6 +119,24 @@ describe('profile dialects', () => {
     const grant = `(subpath "${realpathSync(tmpdir())}")`
     expect(profile).toContain(grant)
     expect(profile.split(grant)).toHaveLength(2)
+  })
+
+  it('seatbelt denies reading the Harness-home secrets and DSH_PROTECTED_PATHS', () => {
+    vi.stubEnv('DSH_HOME', '/h')
+    vi.stubEnv('DSH_PROTECTED_PATHS', '/logs: /bin-dir')
+    try {
+      expect(protectedReadPaths()).toEqual(['/h/.env', '/h/.credentials.yaml', '/h/sessions', '/h/cordis.patch.yml', '/logs', '/bin-dir'])
+      expect(seatbeltProfileArgs(WW)[1]).toContain('(deny file-read* file-write* (subpath "/h/.env") (subpath "/h/.credentials.yaml") (subpath "/h/sessions") (subpath "/h/cordis.patch.yml") (subpath "/logs") (subpath "/bin-dir"))')
+    } finally { vi.unstubAllEnvs() }
+  })
+
+  it('seatbelt denies outbound IP unless DSH_ALLOW_AGENT_NETWORK=1', () => {
+    try {
+      vi.stubEnv('DSH_ALLOW_AGENT_NETWORK', '')
+      expect(seatbeltProfileArgs(RO)[1]).toMatch(/\(deny network-outbound \(remote ip\)\)$/)
+      vi.stubEnv('DSH_ALLOW_AGENT_NETWORK', '1')
+      expect(seatbeltProfileArgs(RO)[1]).not.toContain('network-outbound')
+    } finally { vi.unstubAllEnvs() }
   })
 })
 
