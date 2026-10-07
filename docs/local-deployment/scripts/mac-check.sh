@@ -31,7 +31,9 @@ step "2. Unpack, install, build"
 mkdir -p "$HOME/dsh"; rm -rf "$HOME/dsh/harness"
 run unzip -q "$ZIP" -d "$HOME/dsh/harness" || exit 1
 cd "$HOME/dsh/harness" || exit 1
-export DSH_CLIENT_COMMIT_HASH="$(basename "$ZIP" .zip | sed 's/^harness-src-//')"
+# The build stamps the commit hash; the archive name ends with it (…-src-<hash>.zip).
+export DSH_CLIENT_COMMIT_HASH="$(basename "$ZIP" .zip | grep -oE '[0-9a-f]{7,40}$')"
+[ -n "$DSH_CLIENT_COMMIT_HASH" ] || { say "Archive name must end with the commit hash, e.g. deepseek-harness-light-src-f566177.zip"; exit 1; }
 START=$(date +%s)
 run pnpm install --frozen-lockfile || run pnpm install --no-frozen-lockfile || exit 1
 say "install took $(( $(date +%s) - START ))s"
