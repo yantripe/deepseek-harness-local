@@ -63,10 +63,14 @@ if (-not $SkipServices) {
   Step 'Services: scheduled tasks as dshsvc with an explicit environment'
   $cred = Get-Credential dshsvc
   foreach ($t in @(@{ n = 'DSH-Ollama'; f = 'C:\dsh\bin\start-ollama.ps1' }, @{ n = 'DSH-Web'; f = 'C:\dsh\bin\start-dsh-web.ps1' })) {
+    # Boot trigger plus a 5-minute watchdog: in testing Windows started only one of two boot tasks
+    # of the same account; IgnoreNew leaves a running instance alone.
+    $boot = New-ScheduledTaskTrigger -AtStartup; $boot.Delay = 'PT30S'
+    $watch = New-ScheduledTaskTrigger -Once -At (Get-Date).Date -RepetitionInterval (New-TimeSpan -Minutes 5)
     Register-ScheduledTask -TaskName $t.n `
       -Action (New-ScheduledTaskAction -Execute 'powershell.exe' -Argument "-NoProfile -NonInteractive -ExecutionPolicy Bypass -File $($t.f)") `
-      -Trigger (New-ScheduledTaskTrigger -AtStartup) `
-      -Settings (New-ScheduledTaskSettingsSet -ExecutionTimeLimit 0 -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1)) `
+      -Trigger @($boot, $watch) `
+      -Settings (New-ScheduledTaskSettingsSet -ExecutionTimeLimit 0 -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -MultipleInstances IgnoreNew -RestartCount 5 -RestartInterval (New-TimeSpan -Minutes 1)) `
       -User $cred.UserName -Password $cred.GetNetworkCredential().Password -RunLevel Limited -Force | Out-Null
   }
   Start-ScheduledTask DSH-Ollama; Start-Sleep 5; Start-ScheduledTask DSH-Web; Start-Sleep 25

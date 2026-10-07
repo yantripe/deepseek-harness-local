@@ -96,12 +96,13 @@ $cred = Get-Credential dshsvc
 foreach ($t in @(@{n='DSH-Ollama'; f='C:\dsh\bin\start-ollama.ps1'}, @{n='DSH-Web'; f='C:\dsh\bin\start-dsh-web.ps1'})) {
   Register-ScheduledTask -TaskName $t.n `
     -Action (New-ScheduledTaskAction -Execute powershell.exe -Argument "-NoProfile -NonInteractive -ExecutionPolicy Bypass -File $($t.f)") `
-    -Trigger (New-ScheduledTaskTrigger -AtStartup) `
-    -Settings (New-ScheduledTaskSettingsSet -ExecutionTimeLimit 0 -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1)) `
+    -Trigger @($(New-ScheduledTaskTrigger -AtStartup), $(New-ScheduledTaskTrigger -Once -At (Get-Date).Date -RepetitionInterval (New-TimeSpan -Minutes 5))) `
+    -Settings (New-ScheduledTaskSettingsSet -ExecutionTimeLimit 0 -StartWhenAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -MultipleInstances IgnoreNew -RestartCount 5 -RestartInterval (New-TimeSpan -Minutes 1)) `
     -User $cred.UserName -Password $cred.GetNetworkCredential().Password -RunLevel Limited -Force
 }
 Start-ScheduledTask DSH-Ollama; Start-ScheduledTask DSH-Web
 ```
+Второй триггер (каждые 5 минут) — сторож: в испытаниях Windows при загрузке запускала только одну из двух задач одной учётки; уже работающий экземпляр он не трогает (R1).
 Ссылка для входа — последняя строка `token=` в `C:\dsh\logs\dsh-web.log` (читают только администраторы и служба). При каждом запуске службы выдаются новая ссылка и новый ключ подписи: **перезапуск службы `DSH-Web` отзывает все ранее выданные входы** (A8).
 
 ## 7. Сеть и удалённый доступ (A2, A6, A10)
